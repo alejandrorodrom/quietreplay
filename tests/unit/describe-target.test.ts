@@ -63,6 +63,49 @@ describe('describeClickTarget', () => {
     );
     expect(describeClickTarget(document.getElementById('u'))).toBe('Usuario');
   });
+
+  it('does not use SVG embedded CSS as the click label', () => {
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    const style = document.createElementNS('http://www.w3.org/2000/svg', 'style');
+    style.textContent =
+      '.st0{fill:url(#SVGID_1_);}.st1{opacity:0.15;fill:#FFFFFF;}.st2{fill:#0F995C;}';
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('class', 'st0');
+    path.setAttribute('d', 'M0 0h10v10H0z');
+    svg.append(style, path);
+    document.body.replaceChildren(svg);
+
+    expect(describeClickTarget(path)).toBeUndefined();
+    expect(describeClickTarget(svg)).toBeUndefined();
+  });
+
+  it('uses aria-label on SVG logos instead of style text', () => {
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('aria-label', 'Logo Bancolombia');
+    const style = document.createElementNS('http://www.w3.org/2000/svg', 'style');
+    style.textContent = '.st0{fill:#0F995C;}';
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('class', 'st0');
+    svg.append(style, path);
+    document.body.replaceChildren(svg);
+
+    expect(describeClickTarget(path)).toBe('Logo Bancolombia');
+  });
+
+  it('strips style tags from button labels that wrap an SVG', () => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    const style = document.createElementNS('http://www.w3.org/2000/svg', 'style');
+    style.textContent = '.st0{fill:red}';
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('class', 'st0');
+    svg.append(style, path);
+    btn.append(svg, document.createTextNode('Iniciar sesión'));
+    document.body.replaceChildren(btn);
+
+    expect(describeClickTarget(path)).toBe('Iniciar sesión');
+  });
 });
 
 describe('captureKey / displayKey / maybeMaskKey', () => {

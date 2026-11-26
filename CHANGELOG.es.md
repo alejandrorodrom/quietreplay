@@ -9,6 +9,21 @@ y el proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Sin publicar]
 
+## [2.1.0] - 2026-11-26
+
+### Añadido
+
+- Página para abrir archivos guardados de QuietReplay en este equipo, cambiarles el nombre y guardar varias grabaciones en un solo archivo (`quietreplay-bundle/v1`)
+
+### Cambiado
+
+- El popup, los ajustes y la página de archivos guardados usan palabras cotidianas, y el README describe cada control de esas pantallas
+- La página de archivos guardados muestra el video entero. Desaparece la tira de capturas; la cuenta sigue en **De un vistazo**, y las fotos siguen en el archivo
+
+### Eliminado
+
+- Tira de capturas en la página de archivos guardados
+
 ## [2.0.0] - 2026-11-26
 
 ### Cambiado

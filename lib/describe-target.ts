@@ -14,8 +14,83 @@ const LABEL_INNER =
 
 const MODIFIER_ONLY = new Set(['Shift', 'Control', 'Alt', 'Meta', 'AltGraph']);
 
+/** Tags whose textContent is not user-visible (SVG logos embed CSS here). */
+const SKIP_TEXT_TAGS = new Set([
+  'SCRIPT',
+  'STYLE',
+  'NOSCRIPT',
+  'TEMPLATE',
+  'HEAD',
+]);
+
+/** Click labels longer than this are almost never useful (whole forms, SVG CSS). */
+const MAX_LABEL_LEN = 80;
+
+/** CSS-in-SVG / stylesheet fragments that leak via textContent. */
+const CSS_NOISE =
+  /\.st\d+\s*\{|fill\s*:\s*url\(#|clip-path\s*:\s*url\(#|stroke-miterlimit\s*:/i;
+
+function looksLikeNoise(text: string): boolean {
+  if (!text) return true;
+  if (CSS_NOISE.test(text)) return true;
+  // Mostly punctuation / CSS tokens, little real language
+  const letters = (text.match(/\p{L}/gu) || []).length;
+  if (text.length > 40 && letters / text.length < 0.35) return true;
+  return false;
+}
+
+function sanitizeLabel(text: string): string {
+  const cleaned = text.replace(/\s+/g, ' ').trim();
+  if (!cleaned || looksLikeNoise(cleaned)) return '';
+  // Whole-form / page dumps — prefer no label over a paragraph of UI chrome
+  if (cleaned.length > MAX_LABEL_LEN * 2) return '';
+  if (cleaned.length > MAX_LABEL_LEN) {
+    return cleaned.slice(0, MAX_LABEL_LEN - 1).trimEnd() + '…';
+  }
+  return cleaned;
+}
+
+function svgAccessibleName(el: Element): string {
+  const svg = el.closest('svg');
+  if (!svg) return '';
+  const titleEl = svg.querySelector(':scope > title');
+  return firstNonEmpty(
+    attr(svg, 'aria-label'),
+    labelledByText(svg),
+    attr(svg, 'title'),
+    titleEl ? visibleText(titleEl) : '',
+  );
+}
+
 export function visibleText(el: Element): string {
-  return (el.textContent || '').replace(/\s+/g, ' ').trim();
+  const parts: string[] = [];
+  const walk = (node: Node) => {
+    if (node.nodeType === Node.TEXT_NODE) {
+      const t = node.textContent || '';
+      if (t.trim()) parts.push(t);
+      return;
+    }
+    if (node.nodeType !== Node.ELEMENT_NODE) return;
+    const elNode = node as Element;
+    const tagName = elNode.tagName.toUpperCase();
+    if (SKIP_TEXT_TAGS.has(tagName)) return;
+    // <svg> chrome (defs/styles) is noise; keep only <text>/<title>/<desc>
+    if (tagName === 'SVG') {
+      for (const child of Array.from(elNode.children)) {
+        const tag = child.tagName.toLowerCase();
+        if (tag === 'text' || tag === 'title' || tag === 'desc' || tag === 'tspan') {
+          walk(child);
+        } else if (tag === 'g' || tag === 'a' || tag === 'svg') {
+          walk(child);
+        }
+      }
+      return;
+    }
+    if (tagName === 'DEFS') return;
+    for (const child of Array.from(elNode.childNodes)) walk(child);
+  };
+  walk(el);
+  return sanitizeLabel(parts.join(' '));
 }
 
 function attr(el: Element, name: string): string {
@@ -152,6 +227,11 @@ export function describeClickTarget(el: Element | null): string | undefined {
     const label = describeFieldShell(shell);
     if (label) return label;
   }
+
+  // Logo / icon SVGs: never surface embedded CSS as the click label
+  const svgName = svgAccessibleName(el);
+  if (svgName) return svgName;
+  if (el.closest('svg')) return undefined;
 
   const local = firstNonEmpty(
     attr(el, 'aria-label'),

@@ -9,13 +9,15 @@ QuietReplay no recoge, no envía y no vende tus datos.
 - Funciona dentro de Chrome, en tu equipo.
 - Solo graba la página cuando pulsas **Grabar**.
 - Guarda un archivo en tu carpeta de Descargas.
-- Puede ocultar contraseñas y difuminar lo que escribes. Esa opción viene apagada.
+- Puede ocultar contraseñas y datos privados en el archivo, y poner borrosos los campos en las capturas. Esa opción viene apagada. El video es la pantalla tal como la viste.
 
 ## Qué no hace
 
 - No pide una cuenta.
 - No envía nada a internet: ni estadísticas ni avisos de fallos.
-- No guarda lo que escribes en la página. Solo anota en qué parte hiciste clic.
+- Un clic se guarda como el nombre del botón o del enlace, no como el texto de dentro de un campo.
+- Cada tecla que pulsas queda anotada. En un campo de contraseña la nota es `*`. En los demás campos es la tecla, salvo que actives **Ocultar contraseñas y datos privados**: entonces las letras escritas en campos de texto también son `*`.
+- Esa opción viene apagada. Tapa textos privados habituales en el archivo y pone borrosos los campos en las capturas. El video es la pantalla tal como la viste.
 - Tus ajustes se quedan en este navegador. No se copian a tu cuenta de Google.
 
 ## Permisos

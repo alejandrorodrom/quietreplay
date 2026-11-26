@@ -1,8 +1,8 @@
 {
   "name": "quietreplay",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "private": true,
-  "description": "Record what happens on a Chrome page and save it on your computer. Press Record. Nothing is sent online.",
+  "description": "Record what you do on a Chrome page and save it on your computer. Nothing is sent online.",
   "type": "module",
   "scripts": {
     "dev": "wxt",

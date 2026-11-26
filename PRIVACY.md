@@ -9,13 +9,15 @@ QuietReplay does not collect, send, or sell your data.
 - It runs inside Chrome, on your computer.
 - It records a page only after you press **Record**.
 - It saves a file to your Downloads folder.
-- It can hide passwords and blur what you type. That option is off until you turn it on.
+- It can hide passwords and private text in the saved file, and blur fields in screenshots. That option is off until you turn it on. The video is the screen as you saw it.
 
 ## What it does not do
 
 - It does not ask for an account.
 - It sends nothing online: no statistics and no crash reports.
-- It does not save what you type on the page. It only notes where you clicked.
+- A click is saved as the name of the button or link, not as the text inside a box.
+- Each key you press is noted. In a password box the note is `*`. In other boxes it is the key itself, unless you turned on **Hide passwords and private details**, which also uses `*` for letters typed in text boxes.
+- That option is off until you turn it on. It covers common private text in the file and blurs fields in screenshots. The video is the screen as you saw it.
 - Your settings stay in this browser. They are not copied to your Google account.
 
 ## Permissions

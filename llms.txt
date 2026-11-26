@@ -1,6 +1,6 @@
 # QuietReplay
 
-> Records what happens on a Chrome page and saves it on your computer. Press Record. Nothing is sent online, and there is no account. Under the hood it is a local MV3 extension: full session of a tab from Record to Stop (console, network, clicks, screenshots, optional video) in a ZIP, with no network calls.
+> Records what you do on a Chrome page and saves a file on your computer. Press Record, then Stop and save. Nothing is sent online, and there is no account. It is a local MV3 extension: the whole tab session (what you did, page messages, requests, screenshots, optional video) in a ZIP, with no network calls.
 
 ## Docs
 
@@ -16,3 +16,4 @@
 
 - [Code of Conduct](CODE_OF_CONDUCT.md)
 - [report.schema.json](schemas/report.schema.json): ZIP report.json schema
+- Saved files page (`entrypoints/viewer/`): open local QuietReplay ZIPs or a `quietreplay-bundle/v1` file of several recordings; rename and save them together

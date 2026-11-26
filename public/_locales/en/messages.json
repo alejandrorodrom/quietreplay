@@ -4,7 +4,7 @@
     "description": "Extension name shown in Chrome."
   },
   "extDescription": {
-    "message": "Record what happens on a page and save it on your computer. Press Record. Nothing is sent online.",
+    "message": "Record a page and save the file on your computer. Nothing is sent online.",
     "description": "Short description in the Chrome extensions list. Keep it under 132 characters."
   },
   "actionTitle": {

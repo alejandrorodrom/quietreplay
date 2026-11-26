@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>QuietReplay Viewer</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <div class="layout">
+      <aside class="sidebar" aria-labelledby="cases-heading">
+        <header class="sidebar-head">
+          <h1 id="viewer-title">QuietReplay</h1>
+          <p id="viewer-intro" class="hint"></p>
+          <div class="toolbar">
+            <button type="button" id="add-cases" class="btn">Open files</button>
+            <input
+              type="file"
+              id="file-input"
+              accept=".zip,application/zip"
+              multiple
+              hidden
+            />
+          </div>
+          <p id="drop-hint" class="hint drop-hint"></p>
+          <p id="load-error" class="error" role="alert" hidden></p>
+        </header>
+        <h2 id="cases-heading" class="sidebar-label">Recordings</h2>
+        <ul id="case-list" class="case-list"></ul>
+        <p id="case-empty" class="hint empty">No recording open yet.</p>
+        <section
+          class="bundle-export"
+          aria-labelledby="bundle-heading"
+          aria-describedby="bundle-hint"
+        >
+          <h2 id="bundle-heading" class="sidebar-label">Save together</h2>
+          <p id="bundle-hint" class="hint">
+            Puts every open recording into a single file, so you can share them
+            together.
+          </p>
+          <div class="field">
+            <label for="bundle-title">Title</label>
+            <input type="text" id="bundle-title" autocomplete="off" />
+          </div>
+          <div class="field">
+            <label for="bundle-filename">File name</label>
+            <input
+              type="text"
+              id="bundle-filename"
+              autocomplete="off"
+              aria-describedby="bundle-filename-hint"
+            />
+            <span id="bundle-filename-hint" class="hint"
+              >Optional. Leave it blank and a name is chosen for you.</span
+            >
+          </div>
+          <button type="button" id="save-bundle" class="btn primary" disabled>
+            Save as one file
+          </button>
+          <p id="bundle-status" class="hint" aria-live="polite"></p>
+        </section>
+      </aside>
+
+      <main id="detail" class="detail" hidden>
+        <header class="detail-head">
+          <div class="detail-identity">
+            <div class="detail-title-row">
+              <p id="detail-label" class="eyebrow"></p>
+              <h2 id="detail-page-title"></h2>
+            </div>
+            <p class="detail-sub">
+              <span id="detail-url" class="mono muted"></span>
+              <span id="detail-meta" class="hint"></span>
+            </p>
+          </div>
+          <div class="detail-tools">
+            <p id="redaction-badge" class="badge" hidden></p>
+            <p id="sync-clock" class="sync-clock" aria-live="polite">
+              <span id="sync-clock-label" class="visually-hidden"
+                >Time in the recording</span
+              >
+              <span id="sync-clock-value">+0.0s</span>
+            </p>
+            <div
+              class="summary-row"
+              id="summary-row"
+              role="group"
+              aria-label="At a glance"
+            ></div>
+          </div>
+        </header>
+
+        <div class="stage">
+          <div class="stage-main">
+            <section class="video-panel" aria-labelledby="video-heading">
+              <h3 id="video-heading" class="visually-hidden">Video</h3>
+              <div class="video-frame">
+                <video id="video-player" controls playsinline hidden></video>
+                <p id="video-empty" class="hint video-empty" hidden></p>
+              </div>
+            </section>
+          </div>
+
+          <aside class="stage-side" aria-labelledby="steps-heading">
+            <p id="sync-hint" class="hint sync-hint"></p>
+            <h3 id="steps-heading">What you did</h3>
+            <div class="side-panel sync-scroll">
+              <ol id="steps-list" class="timeline sync-list"></ol>
+              <p id="steps-empty" class="hint" hidden></p>
+            </div>
+          </aside>
+        </div>
+
+        <div class="log-dock">
+          <section class="log-pane" aria-labelledby="console-heading">
+            <div class="log-head">
+              <h3 id="console-heading">Messages from the page</h3>
+              <div class="field inline">
+                <label for="console-filter">Show</label>
+                <select id="console-filter">
+                  <option value="all">All</option>
+                  <option value="error">Errors</option>
+                  <option value="warn">Warnings</option>
+                  <option value="log">Notes</option>
+                  <option value="info">Info</option>
+                  <option value="debug">Details</option>
+                </select>
+              </div>
+            </div>
+            <ul id="console-list" class="console-list sync-list sync-scroll"></ul>
+            <p id="console-empty" class="hint" hidden></p>
+          </section>
+
+          <section class="log-pane" aria-labelledby="failed-heading">
+            <h3 id="failed-heading">What did not load</h3>
+            <ul id="failed-list" class="plain-list sync-list sync-scroll"></ul>
+            <p id="failed-empty" class="hint" hidden></p>
+          </section>
+
+          <section class="log-pane" aria-labelledby="errors-heading">
+            <h3 id="errors-heading">Page errors</h3>
+            <ul id="errors-list" class="plain-list sync-list sync-scroll"></ul>
+            <p id="errors-empty" class="hint" hidden></p>
+          </section>
+        </div>
+      </main>
+
+    </div>
+
+    <dialog
+      id="entry-dialog"
+      class="entry-dialog"
+      closedby="any"
+      aria-labelledby="entry-dialog-title"
+    >
+      <form method="dialog">
+        <header class="entry-dialog-head">
+          <p id="entry-dialog-kicker" class="eyebrow"></p>
+          <h1 id="entry-dialog-title"></h1>
+        </header>
+        <div id="entry-dialog-body" class="entry-dialog-body"></div>
+        <div class="entry-dialog-actions">
+          <div id="entry-copy-actions" class="copy-actions" hidden>
+            <span class="copy">
+              <button
+                type="button"
+                class="btn copy-button"
+                id="entry-copy-request-btn"
+                command="--copy"
+                commandfor="entry-copy-request"
+              >
+                Copy request
+              </button>
+              <span class="tip" role="status"></span>
+            </span>
+            <span class="copy">
+              <button
+                type="button"
+                class="btn copy-button"
+                id="entry-copy-response-btn"
+                command="--copy"
+                commandfor="entry-copy-response"
+              >
+                Copy response
+              </button>
+              <span class="tip" role="status"></span>
+            </span>
+            <span class="copy">
+              <button
+                type="button"
+                class="btn copy-button"
+                id="entry-copy-curl-btn"
+                command="--copy"
+                commandfor="entry-copy-curl"
+              >
+                Copy as curl
+              </button>
+              <span class="tip" role="status"></span>
+            </span>
+          </div>
+          <div class="entry-dialog-tail">
+            <button type="button" class="btn" id="entry-dialog-seek" hidden>
+              Jump to +0.0s
+            </button>
+            <button type="submit" class="btn" id="entry-dialog-close">
+              Close
+            </button>
+          </div>
+        </div>
+      </form>
+      <textarea id="entry-copy-request" hidden readonly tabindex="-1"></textarea>
+      <textarea id="entry-copy-response" hidden readonly tabindex="-1"></textarea>
+      <textarea id="entry-copy-curl" hidden readonly tabindex="-1"></textarea>
+    </dialog>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

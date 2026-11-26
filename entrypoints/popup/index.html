@@ -10,7 +10,7 @@
     <main>
       <h1 id="title">QuietReplay</h1>
       <p id="intro">
-        Press Record on the page you want to show. The file is saved to
+        Press Record on this page. When you stop, the file is saved in
         Downloads.
       </p>
       <p id="status" class="status" aria-live="polite" data-state="idle">
@@ -27,7 +27,7 @@
         <div class="field" id="filename-field" hidden>
           <label for="filename">File name</label>
           <span id="filename-hint" class="hint"
-            >Optional. If you leave it as is, it is saved with this name.</span
+            >You can change it. If you leave it, this name is used.</span
           >
           <input
             type="text"
@@ -46,7 +46,8 @@
             <option value="es">Español</option>
           </select>
         </div>
-        <p>
+        <p class="links">
+          <a id="viewer" href="#">View a saved file</a>
           <a id="options" href="#">Settings</a>
         </p>
       </form>

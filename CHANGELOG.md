@@ -9,6 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-11-26
+
+### Added
+
+- Page to open saved QuietReplay files on this computer, rename them, and save several recordings as one file (`quietreplay-bundle/v1`)
+
+### Changed
+
+- Popup, settings, and the saved-files page use everyday words, and the README describes every control on those screens
+- The saved-files page shows the whole video. The screenshot strip is gone; the count stays under **At a glance**, and the pictures stay in the file
+
+### Removed
+
+- Screenshot strip on the saved-files page
+
 ## [2.0.0] - 2026-11-26
 
 ### Changed

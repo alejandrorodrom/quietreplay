@@ -5,7 +5,7 @@ export default defineConfig({
     name: '__MSG_extName__',
     description: '__MSG_extDescription__',
     default_locale: 'en',
-    version: '2.0.0',
+    version: '2.1.0',
     // tabCapture + offscreen required: video is on by default and optional
     // grants often fail silently when starting from the popup.
     permissions: [
@@ -36,7 +36,7 @@ export default defineConfig({
     },
     content_security_policy: {
       extension_pages:
-        "script-src 'self'; object-src 'none'; connect-src 'none'",
+        "script-src 'self'; object-src 'none'; connect-src 'none'; img-src 'self' blob: data:; media-src 'self' blob:",
     },
   },
   vite: () => ({

@@ -195,3 +195,10 @@ button#save {
 a {
   color: var(--accent);
 }
+
+.links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin: 0;
+}

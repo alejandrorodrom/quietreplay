@@ -12,6 +12,7 @@ const filenameLabel = filenameField.querySelector('label')!;
 const filenameHint = document.getElementById('filename-hint')!;
 const toggleBtn = document.getElementById('toggle') as HTMLButtonElement;
 const optionsLink = document.getElementById('options') as HTMLAnchorElement;
+const viewerLink = document.getElementById('viewer') as HTMLAnchorElement;
 const titleEl = document.getElementById('title')!;
 
 type StatusResponse = {
@@ -55,6 +56,7 @@ function applyLocale(locale: Locale, res: StatusResponse) {
   toggleBtn.textContent = t(locale, recording ? 'stopAndSave' : 'arm');
   toggleBtn.disabled = status === 'saving';
   optionsLink.textContent = t(locale, 'openOptions');
+  viewerLink.textContent = t(locale, 'openViewer');
   filenameLabel.textContent = t(locale, 'zipFilename');
   filenameHint.textContent = t(locale, 'zipFilenameHint');
   const label = localeEl.previousElementSibling;
@@ -143,6 +145,13 @@ localeEl.addEventListener('change', async () => {
 optionsLink.addEventListener('click', (e) => {
   e.preventDefault();
   void chrome.runtime.openOptionsPage();
+});
+
+viewerLink.addEventListener('click', (e) => {
+  e.preventDefault();
+  void chrome.tabs.create({
+    url: chrome.runtime.getURL('/viewer.html'),
+  });
 });
 
 void refresh();

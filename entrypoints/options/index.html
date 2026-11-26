@@ -10,8 +10,8 @@
     <main>
       <h1 id="heading">Settings</h1>
       <p id="options-intro" class="hint">
-        You can record without changing anything. These settings are already set
-        up.
+        You can record with these settings as they are. Change them only if you
+        need to.
       </p>
       <form id="options-form" aria-labelledby="heading">
         <div class="field">
@@ -34,8 +34,8 @@
             <label for="captureBodies">Save what the page loads</label>
           </div>
           <p id="capture-bodies-hint" class="hint">
-            Includes the information the page asks for and receives. Best left
-            on.
+            Keeps the data the page sends and receives. Leave this on unless the
+            file would be too large.
           </p>
         </div>
 
@@ -48,10 +48,10 @@
               switch
               aria-describedby="video-hint"
             />
-            <label for="videoEnabled">Record a video of the page</label>
+            <label for="videoEnabled">Record a video</label>
           </div>
           <p id="video-hint" class="hint">
-            So you can watch later what happened on the screen.
+            A video of the page, so you can watch it later.
           </p>
         </div>
 
@@ -65,19 +65,21 @@
               aria-describedby="obfuscation-hint"
             />
             <label for="obfuscationEnabled"
-              >Hide passwords and private information</label
+              >Hide passwords and private details</label
             >
           </div>
           <p id="obfuscation-hint" class="hint">
-            Hides passwords and blurs what you type. Starts off.
+            Off until you turn it on. Passwords and private text are covered in
+            the file, and fields look blurred in screenshots. The video is the
+            screen as you saw it.
           </p>
         </div>
 
         <div class="field">
-          <label for="downloadSubfolder">Folder inside Downloads</label>
+          <label for="downloadSubfolder">Folder in Downloads</label>
           <span id="folder-hint" class="hint"
-            >The file shows up inside this folder. If you clear it, quietreplay
-            is used.</span
+            >Files go inside this folder. If you clear it, the folder name is
+            quietreplay.</span
           >
           <input
             type="text"
@@ -91,17 +93,17 @@
         </div>
 
         <details id="advanced">
-          <summary id="advanced-summary">More settings</summary>
+          <summary id="advanced-summary">More ways to hide</summary>
           <p id="advanced-hint" class="hint">
-            Leave this empty unless someone asked you to hide a specific text or
-            part of the page.
+            Only used when “Hide passwords and private details” is on. Leave
+            both boxes empty if you are not sure.
           </p>
 
           <div class="field">
-            <label for="customRedaction">Text you want hidden</label>
+            <label for="customRedaction">Words to hide in the file</label>
             <span id="redact-help" class="hint"
-              >One per line. For example, a code you do not want in the
-              file.</span
+              >One word or phrase per line. If it appears in the file, it is
+              replaced with [REDACTED].</span
             >
             <textarea
               id="customRedaction"
@@ -116,9 +118,11 @@
           </div>
 
           <div class="field">
-            <label for="customBlur">Parts of the page you want blurred</label>
+            <label for="customBlur">Areas to blur</label>
             <span id="blur-help" class="hint"
-              >One per line. If you are not sure, leave this empty.</span
+              >One per line. These are the names Chrome shows when you inspect
+              the page. They look blurred in screenshots. Leave this empty if
+              you are not sure.</span
             >
             <textarea
               id="customBlur"
