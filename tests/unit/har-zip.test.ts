@@ -190,10 +190,69 @@ describe('HAR', () => {
 });
 
 describe('ZIP', () => {
+  it('embeds video and screenshot bytes including invalid data URLs', async () => {
+    const withMedia: CapturedEvent[] = [
+      ...sample,
+      {
+        kind: 'screenshot',
+        t: 20,
+        id: 's1',
+        mime: 'image/png',
+        dataUrl: 'data:image/png;base64,QQ==',
+      },
+      {
+        kind: 'screenshot',
+        t: 21,
+        id: 's2',
+        mime: 'image/jpeg',
+        dataUrl: 'not-a-data-url',
+      },
+      {
+        kind: 'navigation',
+        t: 22,
+        url: 'https://example.com/next?token=abc',
+        title: 'Next',
+      },
+      {
+        kind: 'network',
+        t: 23,
+        method: 'POST',
+        url: 'https://example.com/api',
+        status: 200,
+        durationMs: 1,
+        requestBody: '{"password":"hunter2"}',
+        responseBody: 'AAAA',
+        responseEncoding: 'base64' as const,
+        size: 4,
+        resourceType: 'fetch',
+      },
+    ];
+    const videoBlob = new Blob([new Uint8Array([1, 2, 3, 4])], {
+      type: 'video/webm',
+    });
+    const { blob } = await buildZipBlob(
+      withMedia,
+      { ...DEFAULT_SETTINGS, obfuscationEnabled: true },
+      { extensionVersion: '1.0.0', videoBlob },
+    );
+    const JSZip = (await import('jszip')).default;
+    const zip = await JSZip.loadAsync(blob);
+    expect(Object.keys(zip.files).some((p) => p.startsWith('screenshots/'))).toBe(
+      true,
+    );
+    expect(zip.file('video.webm')).toBeTruthy();
+    const events = JSON.parse(await zip.file('events.json')!.async('string'));
+    expect(events.some((e: { kind: string }) => e.kind === 'navigation')).toBe(
+      true,
+    );
+  });
+
+
   it('builds a zip blob with report files', async () => {
     const { blob, filename } = await buildZipBlob(sample, DEFAULT_SETTINGS, {
       extensionVersion: '1.0.0',
     });
+
     expect(blob.size).toBeGreaterThan(100);
     expect(filename).toMatch(/^quietreplay-.*-example\.com\.zip$/);
 

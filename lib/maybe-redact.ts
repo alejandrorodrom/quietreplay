@@ -1,3 +1,8 @@
+/**
+ * Copyright QuietReplay contributors.
+ * SPDX-License-Identifier: MIT
+ */
+
 import {
   redactHeaders,
   redactJsonString,

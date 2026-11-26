@@ -1,3 +1,8 @@
+/**
+ * Copyright QuietReplay contributors.
+ * SPDX-License-Identifier: MIT
+ */
+
 import type { CapturedEvent } from './types';
 
 /** Soft caps so a busy page cannot retain unbounded capture state. */

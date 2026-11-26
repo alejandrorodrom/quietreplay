@@ -1,4 +1,9 @@
 /**
+ * Copyright QuietReplay contributors.
+ * SPDX-License-Identifier: MIT
+ */
+
+/**
  * Best-effort labels for clicks/keys without reading typed values.
  * Pages often break a11y, so we cascade several DOM heuristics.
  */

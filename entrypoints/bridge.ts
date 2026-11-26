@@ -1,4 +1,9 @@
 /**
+ * Copyright QuietReplay contributors.
+ * SPDX-License-Identifier: MIT
+ */
+
+/**
  * Injected into ISOLATED world. Receives MAIN CustomEvents and forwards to SW.
  */
 import {

@@ -1,3 +1,8 @@
+/**
+ * Copyright QuietReplay contributors.
+ * SPDX-License-Identifier: MIT
+ */
+
 import { t } from '../../lib/i18n';
 import type { Locale, Settings, TabStatus } from '../../lib/types';
 

@@ -1,4 +1,9 @@
 /**
+ * Copyright QuietReplay contributors.
+ * SPDX-License-Identifier: MIT
+ */
+
+/**
  * Injected into page MAIN world. Patches console, errors, fetch, XHR, history.
  * Talks to ISOLATED bridge via CustomEvent + token (never postMessage *).
  */

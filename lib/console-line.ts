@@ -1,3 +1,8 @@
+/**
+ * Copyright QuietReplay contributors.
+ * SPDX-License-Identifier: MIT
+ */
+
 /** Text and call-site labels so console.json can follow the DevTools console. */
 
 const FRAME_RE = /^\s*at\s+(?:.*\s+\()?(.+):(\d+):\d+\)?\s*$/;

@@ -3,7 +3,7 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
-  { ignores: ['.output/**', '.wxt/**', 'node_modules/**', 'web-ext-artifacts/**'] },
+  { ignores: ['.output/**', '.wxt/**', 'node_modules/**', 'web-ext-artifacts/**', 'coverage/**'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {

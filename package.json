@@ -12,9 +12,11 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test tests/e2e/classic.spec.ts",
     "test:e2e:external": "playwright test tests/e2e/external.spec.ts",
     "check:no-network": "tsx scripts/check-no-network.ts",
+    "check:license-headers": "tsx scripts/check-license-headers.ts",
     "postinstall": "wxt prepare"
   },
   "repository": {
@@ -34,7 +36,9 @@
     "@eslint/js": "^9.39.1",
     "@playwright/test": "^1.56.1",
     "@types/chrome": "^0.1.24",
+    "@vitest/coverage-v8": "4.1.12",
     "eslint": "^9.39.1",
+    "fast-check": "^4.11.0",
     "globals": "^16.5.0",
     "happy-dom": "^21.0.4",
     "tsx": "^4.20.6",

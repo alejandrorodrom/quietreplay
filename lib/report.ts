@@ -1,3 +1,8 @@
+/**
+ * Copyright QuietReplay contributors.
+ * SPDX-License-Identifier: MIT
+ */
+
 import { displayKey, maybeMaskKey } from './describe-target';
 import { t } from './i18n';
 import { maybeRedactText, maybeRedactUrl } from './maybe-redact';

@@ -1,3 +1,8 @@
+/**
+ * Copyright QuietReplay contributors.
+ * SPDX-License-Identifier: MIT
+ */
+
 /** Stable-ish CSS selector without reading input values. */
 
 export { visibleText } from './describe-target';

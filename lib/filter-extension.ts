@@ -1,3 +1,8 @@
+/**
+ * Copyright QuietReplay contributors.
+ * SPDX-License-Identifier: MIT
+ */
+
 import type { CapturedEvent } from './types';
 
 const EXT_URL_RE = /^chrome-extension:\/\//i;

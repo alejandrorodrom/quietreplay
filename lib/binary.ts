@@ -1,3 +1,8 @@
+/**
+ * Copyright QuietReplay contributors.
+ * SPDX-License-Identifier: MIT
+ */
+
 /** chrome.runtime messaging JSON-serializes payloads — use base64 for binary. */
 
 const B64_CHUNK = 0x8000;

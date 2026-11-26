@@ -1,3 +1,8 @@
+/**
+ * Copyright QuietReplay contributors.
+ * SPDX-License-Identifier: MIT
+ */
+
 /** Turn a captured body into something the detail dialog can show. */
 
 export function presentPayload(

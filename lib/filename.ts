@@ -1,3 +1,8 @@
+/**
+ * Copyright QuietReplay contributors.
+ * SPDX-License-Identifier: MIT
+ */
+
 /** Safe ZIP basename for chrome.downloads (no path separators). */
 export function sanitizeZipFilename(raw: string): string {
   let name = raw.trim().replace(/[/\\?%*:|"<>]/g, '-').replace(/\s+/g, '-');

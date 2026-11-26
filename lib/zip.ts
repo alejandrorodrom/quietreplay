@@ -1,3 +1,8 @@
+/**
+ * Copyright QuietReplay contributors.
+ * SPDX-License-Identifier: MIT
+ */
+
 import JSZip from 'jszip';
 import { maybeMaskKey } from './describe-target';
 import { scrubExtensionNoise } from './filter-extension';

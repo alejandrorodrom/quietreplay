@@ -1,3 +1,8 @@
+/**
+ * Copyright QuietReplay contributors.
+ * SPDX-License-Identifier: MIT
+ */
+
 /** Yield to the event loop so long redact/zip work does not freeze the SW/UI. */
 export function yieldToMain(): Promise<void> {
   return new Promise((resolve) => {

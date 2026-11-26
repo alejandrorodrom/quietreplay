@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   CircularBuffer,
   MAX_CAPTURE_EVENTS,
+  networkBodyChars,
 } from '../../lib/buffer';
 
 describe('CircularBuffer', () => {
@@ -68,4 +69,18 @@ describe('CircularBuffer', () => {
     ).toBe('full');
     expect(buf.size).toBe(MAX_CAPTURE_EVENTS);
   });
+
+  it('clears retained events', () => {
+    const buf = new CircularBuffer();
+    buf.push({ kind: 'console', t: 1, level: 'log', args: ['x'] });
+    buf.clear();
+    expect(buf.size).toBe(0);
+    expect(buf.snapshot()).toEqual([]);
+  });
+
+  it('counts network body characters', () => {
+    expect(networkBodyChars(undefined)).toBe(0);
+    expect(networkBodyChars('abcd')).toBe(4);
+  });
 });
+

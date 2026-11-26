@@ -10,7 +10,15 @@ describe('i18n', () => {
   it('returns English strings', () => {
     expect(t('en', 'statusArmed')).toBe('Recording…');
   });
+
+  it('interpolates template variables', () => {
+    expect(
+      t('en', 'viewerMissingNested', { name: 'demo.zip' }),
+    ).toContain('demo.zip');
+  });
 });
+
+
 
 describe('detectDefaultLocale', () => {
   it('returns a locale', () => {

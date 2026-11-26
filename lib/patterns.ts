@@ -1,3 +1,8 @@
+/**
+ * Copyright QuietReplay contributors.
+ * SPDX-License-Identifier: MIT
+ */
+
 /** Built-in redaction patterns — applied only when obfuscation is enabled. */
 
 export const SENSITIVE_HEADER_NAMES = new Set([

@@ -1,3 +1,8 @@
+/**
+ * Copyright QuietReplay contributors.
+ * SPDX-License-Identifier: MIT
+ */
+
 export type Locale = 'es' | 'en';
 
 export type TabStatus = 'idle' | 'armed' | 'saving' | 'ready';

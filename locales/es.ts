@@ -1,3 +1,8 @@
+/**
+ * Copyright QuietReplay contributors.
+ * SPDX-License-Identifier: MIT
+ */
+
 import type { MessageKey } from './en';
 
 export const es: Record<MessageKey, string> = {

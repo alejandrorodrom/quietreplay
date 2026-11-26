@@ -1,3 +1,8 @@
+/**
+ * Copyright QuietReplay contributors.
+ * SPDX-License-Identifier: MIT
+ */
+
 import { en, type MessageKey } from '../locales/en';
 import { es } from '../locales/es';
 import type { Locale } from './types';

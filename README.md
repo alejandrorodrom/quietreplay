@@ -16,7 +16,8 @@
   <img src="https://img.shields.io/badge/Chrome-116%2B-4285F4?logo=googlechrome&logoColor=white" alt="Chrome 116+">
   <img src="https://img.shields.io/badge/Edge-116%2B-0078D7?logo=microsoftedge&logoColor=white" alt="Microsoft Edge 116+">
   <a href="https://github.com/alejandrorodrom/quietreplay/releases"><img src="https://img.shields.io/github/v/release/alejandrorodrom/quietreplay?label=version" alt="Version"></a>
-  <a href="./license"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT"></a>
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT"></a>
+  <a href="https://api.scorecard.dev/projects/github.com/alejandrorodrom/quietreplay"><img src="https://api.scorecard.dev/projects/github.com/alejandrorodrom/quietreplay/badge" alt="OpenSSF Scorecard"></a>
   <img src="https://img.shields.io/badge/node-%3E%3D22.12-brightgreen" alt="Node.js >=22.12">
 </p>
 
@@ -24,7 +25,7 @@
 
 QuietReplay records what you do on a web page and saves a file on your computer, so you can watch it later or send it to someone. Press **Record**, do what you want to show, then press **Stop and save**. Nothing is sent online, and there is no account.
 
-[Español](./README.es.md) · [Privacy](./PRIVACY.md) · [Contributing](./CONTRIBUTING.md) · [Security](./SECURITY.md)
+[Español](./README.es.md) · [Privacy](./PRIVACY.md) · [Contributing](./CONTRIBUTING.md) · [Security](./SECURITY.md) · [Governance](./GOVERNANCE.md) · [Roadmap](./ROADMAP.md) · [OpenSSF](./docs/OPENSSF.md)
 
 The words below are the same words on the screen.
 
@@ -221,4 +222,4 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 ## License
 
-MIT — see [license](./license).
+MIT — see [LICENSE](./LICENSE).
