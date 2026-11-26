@@ -138,7 +138,7 @@ In the readable report, a step is one of: **Click on "…"**, **Click on the pag
 
 ## View a saved file
 
-From the QuietReplay window, choose **View a saved file**. The page title is **Saved files**. Nothing is uploaded.
+From the QuietReplay window, choose **View a saved file**. The page title is **Saved files**, with the QuietReplay logo beside it. Nothing is uploaded.
 
 **Open files**, or drop a file anywhere on the page. You can open several at once.
 

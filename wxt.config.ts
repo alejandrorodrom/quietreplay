@@ -5,7 +5,7 @@ export default defineConfig({
     name: '__MSG_extName__',
     description: '__MSG_extDescription__',
     default_locale: 'en',
-    version: '2.1.0',
+    version: '2.1.1',
     // tabCapture + offscreen required: video is on by default and optional
     // grants often fail silently when starting from the popup.
     permissions: [

@@ -9,6 +9,12 @@ y el proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Sin publicar]
 
+## [2.1.1] - 2026-11-26
+
+### Añadido
+
+- La página de archivos guardados muestra el logo de QuietReplay junto al título
+
 ## [2.1.0] - 2026-11-26
 
 ### Añadido

@@ -138,7 +138,7 @@ En el informe legible, un paso es uno de estos: **Clic en «…»**, **Clic en l
 
 ## Ver un archivo guardado
 
-Desde la ventana de QuietReplay, elige **Ver un archivo guardado**. El título de la página es **Archivos guardados**. No se sube nada.
+Desde la ventana de QuietReplay, elige **Ver un archivo guardado**. El título de la página es **Archivos guardados**, con el logo de QuietReplay al lado. No se sube nada.
 
 **Abrir archivos**, o suelta un archivo en cualquier parte de la página. Puedes abrir varios a la vez.
 

@@ -57,6 +57,18 @@ body {
   overscroll-behavior: contain;
 }
 
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.brand-mark {
+  flex: none;
+  width: 2rem;
+  height: 2rem;
+}
+
 .sidebar-head h1 {
   font-size: 1.15rem;
   margin: 0;
