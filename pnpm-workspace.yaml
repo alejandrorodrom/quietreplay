@@ -4,3 +4,13 @@ packages:
 allowBuilds:
   esbuild: true
   spawn-sync: true
+
+overrides:
+  '@vitest/mocker@>=2.1.0-beta.7 <4.1.12': ^4.1.12
+  adm-zip@<0.6.1: ^0.6.1
+  esbuild@>=0.27.3 <0.28.1: ^0.28.1
+  shell-quote@<=1.8.4: ^1.9.0
+  tinypool@<2.1.2: ^2.1.2
+  tmp@<0.2.6: ^0.2.6
+  uuid@<11.1.1: ^11.1.1
+  vitest@>=2.1.0 <4.1.12: ^4.1.12
