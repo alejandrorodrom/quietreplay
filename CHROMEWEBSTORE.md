@@ -256,6 +256,57 @@ After the first version is **In the Store**, later updates can use the Partner C
 
 ---
 
+## GitHub Actions (store updates)
+
+Workflow: `.github/workflows/publish.yml` (manual `workflow_dispatch`, environment **`production`**).
+
+**Prerequisite:** the first version of each store listing must exist (Chrome: item created; Edge: published at least once). The APIs cannot create a new product.
+
+### Workflow inputs
+
+| Input | Default | Effect |
+|-------|---------|--------|
+| `dry_run` | false | Build + checks only; no tag, release, or store upload |
+| `upload_chrome` | false | Upload ZIP to Chrome Web Store as a **draft** |
+| `upload_edge` | false | Upload ZIP to Edge Add-ons (**draft** unless `publish_stores`) |
+| `publish_stores` | false | After upload: Chrome `publish` + Edge submit for certification |
+
+Recommended first automated run: `upload_chrome` and/or `upload_edge` = true, `publish_stores` = false. Confirm the draft in each dashboard, then re-run with `publish_stores` = true (or publish from the UI).
+
+### Secrets (GitHub → Settings → Environments → **production**)
+
+#### Chrome Web Store
+
+| Secret | Where to get it |
+|--------|-----------------|
+| `CHROME_CLIENT_ID` | Google Cloud OAuth client (Desktop app) |
+| `CHROME_CLIENT_SECRET` | Same OAuth client |
+| `CHROME_REFRESH_TOKEN` | OAuth refresh token with Chrome Web Store scope |
+| `CHROME_EXTENSION_ID` | ID in Chrome Developer Dashboard item URL |
+| `CHROME_PUBLISHER_ID` | Chrome Web Store Developer Dashboard → Account / Settings |
+
+Setup guide: https://github.com/fregante/chrome-webstore-upload-keys  
+API enable: Chrome Web Store API in the same Google Cloud project. Scope: `https://www.googleapis.com/auth/chromewebstore`.
+
+#### Microsoft Edge Add-ons
+
+| Secret | Where to get it |
+|--------|-----------------|
+| `EDGE_CLIENT_ID` | Partner Center → Edge → your extension → **Publish API** |
+| `EDGE_API_KEY` | Same page (create/renew; keys expire ~every **72 days**) |
+| `EDGE_PRODUCT_ID` | Extension Overview → Product ID (**GUID**, not the 32-char store ID in the public URL) |
+
+Docs: https://learn.microsoft.com/en-us/microsoft-edge/extensions/update/api/using-addons-api
+
+### Typical release flow
+
+1. Bump `version` in `package.json` / `wxt.config.ts` (must be **greater** than the live store version).  
+2. Commit and push.  
+3. Actions → **Publish extension release** → enable the upload flags you need.  
+4. Wait for Google/Microsoft review (Edge certification can take up to ~7 business days).
+
+---
+
 ## Version History
 
 | Version | Date | Changes | Status |

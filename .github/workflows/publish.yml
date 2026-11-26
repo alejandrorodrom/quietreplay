@@ -4,7 +4,22 @@ on:
   workflow_dispatch:
     inputs:
       dry_run:
-        description: "If true, run checks and build only (no tag / GitHub Release)"
+        description: "If true, run checks and build only (no tag / GitHub Release / store upload)"
+        required: false
+        type: boolean
+        default: false
+      upload_chrome:
+        description: "Upload ZIP to Chrome Web Store as a draft (requires first manual listing + secrets)"
+        required: false
+        type: boolean
+        default: false
+      upload_edge:
+        description: "Upload ZIP to Edge Add-ons as a draft (requires first published listing + secrets)"
+        required: false
+        type: boolean
+        default: false
+      publish_stores:
+        description: "After upload, submit Chrome for publish and Edge for certification (otherwise draft only)"
         required: false
         type: boolean
         default: false
@@ -80,7 +95,6 @@ jobs:
           upload-artifact: false
           upload-release-assets: false
 
-
       - name: Attest build provenance
         id: attest
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
@@ -135,3 +149,83 @@ jobs:
           \`\`\`bash
           gh attestation verify --repo alejandrorodrom/quietreplay ./$(basename "$ZIP_PATH")
           \`\`\`"
+
+      - name: Require Chrome Web Store secrets
+        if: ${{ !inputs.dry_run && inputs.upload_chrome }}
+        env:
+          CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
+          CHROME_CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
+          CHROME_REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
+          CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
+          CHROME_PUBLISHER_ID: ${{ secrets.CHROME_PUBLISHER_ID }}
+        run: |
+          set -euo pipefail
+          missing=0
+          for name in CHROME_CLIENT_ID CHROME_CLIENT_SECRET CHROME_REFRESH_TOKEN CHROME_EXTENSION_ID CHROME_PUBLISHER_ID; do
+            if [ -z "${!name}" ]; then
+              echo "::error::Missing secret $name in the production environment. See CHROMEWEBSTORE.md → GitHub Actions."
+              missing=1
+            fi
+          done
+          exit "$missing"
+
+      - name: Upload to Chrome Web Store (draft)
+        if: ${{ !inputs.dry_run && inputs.upload_chrome }}
+        env:
+          CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
+          REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
+          EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
+          PUBLISHER_ID: ${{ secrets.CHROME_PUBLISHER_ID }}
+          ZIP_PATH: ${{ steps.zip.outputs.path }}
+        run: |
+          set -euo pipefail
+          pnpm dlx chrome-webstore-upload-cli@4 upload \
+            --source "$ZIP_PATH" \
+            --extension-id "$EXTENSION_ID" \
+            --publisher-id "$PUBLISHER_ID"
+
+      - name: Publish Chrome Web Store draft
+        if: ${{ !inputs.dry_run && inputs.upload_chrome && inputs.publish_stores }}
+        env:
+          CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
+          REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
+          EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
+          PUBLISHER_ID: ${{ secrets.CHROME_PUBLISHER_ID }}
+        run: |
+          set -euo pipefail
+          pnpm dlx chrome-webstore-upload-cli@4 publish \
+            --extension-id "$EXTENSION_ID" \
+            --publisher-id "$PUBLISHER_ID"
+
+      - name: Require Edge Add-ons secrets
+        if: ${{ !inputs.dry_run && inputs.upload_edge }}
+        env:
+          EDGE_CLIENT_ID: ${{ secrets.EDGE_CLIENT_ID }}
+          EDGE_API_KEY: ${{ secrets.EDGE_API_KEY }}
+          EDGE_PRODUCT_ID: ${{ secrets.EDGE_PRODUCT_ID }}
+        run: |
+          set -euo pipefail
+          missing=0
+          for name in EDGE_CLIENT_ID EDGE_API_KEY EDGE_PRODUCT_ID; do
+            if [ -z "${!name}" ]; then
+              echo "::error::Missing secret $name in the production environment. See CHROMEWEBSTORE.md → GitHub Actions."
+              missing=1
+            fi
+          done
+          exit "$missing"
+
+      - name: Upload to Edge Add-ons
+        if: ${{ !inputs.dry_run && inputs.upload_edge }}
+        uses: hamzahamidi/publish-to-edge-add-ons@4efbcdd7ee5fef9612ff586e4ad4a9adda919e02 # v1.0.0
+        with:
+          api-key: ${{ secrets.EDGE_API_KEY }}
+          client-id: ${{ secrets.EDGE_CLIENT_ID }}
+          product-id: ${{ secrets.EDGE_PRODUCT_ID }}
+          zip: ${{ steps.zip.outputs.path }}
+          publish: ${{ inputs.publish_stores }}
+          certification-notes: >-
+            QuietReplay update. Test: open an https page → Record → interact →
+            Stop and save → check Downloads for quietreplay-*.zip. No account;
+            extension uses connect-src none. UI: English and Spanish.
