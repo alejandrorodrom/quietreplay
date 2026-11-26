@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { CircularBuffer } from '../../lib/buffer';
+import {
+  CircularBuffer,
+  MAX_CAPTURE_EVENTS,
+} from '../../lib/buffer';
 
 describe('CircularBuffer', () => {
   it('keeps the full session, not only recent events', () => {
@@ -23,19 +26,46 @@ describe('CircularBuffer', () => {
     expect(snap[1]).toMatchObject({ args: ['new'] });
   });
 
-  it('keeps every screenshot', () => {
+  it('keeps every screenshot within the event cap', () => {
     const buf = new CircularBuffer();
     const now = Date.now();
     for (let i = 0; i < 25; i++) {
-      buf.push({
-        kind: 'screenshot',
-        t: now + i,
-        id: `s${i}`,
-        mime: 'image/jpeg',
-        dataUrl: 'data:image/jpeg;base64,QQ==',
-      });
+      expect(
+        buf.push({
+          kind: 'screenshot',
+          t: now + i,
+          id: `s${i}`,
+          mime: 'image/jpeg',
+          dataUrl: 'data:image/jpeg;base64,QQ==',
+        }),
+      ).toBe('ok');
     }
     const shots = buf.snapshot().filter((e) => e.kind === 'screenshot');
     expect(shots).toHaveLength(25);
+  });
+
+  it('returns full when the event cap is reached', () => {
+    const buf = new CircularBuffer();
+    const now = Date.now();
+    let last: 'ok' | 'full' = 'ok';
+    for (let i = 0; i < MAX_CAPTURE_EVENTS; i++) {
+      last = buf.push({
+        kind: 'console',
+        t: now + i,
+        level: 'log',
+        args: [String(i)],
+      });
+    }
+    expect(last).toBe('full');
+    expect(buf.size).toBe(MAX_CAPTURE_EVENTS);
+    expect(
+      buf.push({
+        kind: 'console',
+        t: now + MAX_CAPTURE_EVENTS,
+        level: 'log',
+        args: ['overflow'],
+      }),
+    ).toBe('full');
+    expect(buf.size).toBe(MAX_CAPTURE_EVENTS);
   });
 });

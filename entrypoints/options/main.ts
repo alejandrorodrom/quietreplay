@@ -45,6 +45,7 @@ function applyLabels(locale: Locale) {
     ) as HTMLLabelElement
   ).textContent = t(locale, 'obfuscationEnabled');
   setText('obfuscation-hint', locale, 'obfuscationHint');
+  setText('screenshots-beta-hint', locale, 'screenshotsBetaHint');
   (
     document.querySelector('label[for="downloadSubfolder"]') as HTMLLabelElement
   ).textContent = t(locale, 'downloadSubfolder');

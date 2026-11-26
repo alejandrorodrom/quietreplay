@@ -1,3 +1,9 @@
+import {
+  maybeRedactHeaders,
+  maybeRedactJsonString,
+  maybeRedactUrl,
+} from './maybe-redact';
+import type { CustomRedactionRule } from './redact';
 import type { CapturedEvent } from './types';
 
 type NetworkEvent = Extract<CapturedEvent, { kind: 'network' }>;
@@ -96,10 +102,50 @@ function base64Bytes(text: string): number {
   return Math.floor((cleaned.length * 3) / 4) - pad;
 }
 
-export function buildHar(events: CapturedEvent[]): object {
+export type BuildHarOptions = {
+  obfuscate?: boolean;
+  custom?: CustomRedactionRule[];
+};
+
+function prepareNetworkEvent(
+  e: NetworkEvent,
+  obfuscate: boolean,
+  custom: CustomRedactionRule[],
+): NetworkEvent {
+  const reqHeaders = e.requestHeaders
+    ? maybeRedactHeaders(obfuscate, e.requestHeaders, custom)
+    : undefined;
+  const resHeaders = e.responseHeaders
+    ? maybeRedactHeaders(obfuscate, e.responseHeaders, custom)
+    : undefined;
+  return {
+    ...e,
+    url: maybeRedactUrl(obfuscate, e.url, custom),
+    requestHeaders: reqHeaders,
+    responseHeaders: resHeaders,
+    requestBody: e.requestBody
+      ? e.requestEncoding === 'base64'
+        ? e.requestBody
+        : maybeRedactJsonString(obfuscate, e.requestBody, custom)
+      : undefined,
+    responseBody: e.responseBody
+      ? e.responseEncoding === 'base64'
+        ? e.responseBody
+        : maybeRedactJsonString(obfuscate, e.responseBody, custom)
+      : undefined,
+  };
+}
+
+export function buildHar(
+  events: CapturedEvent[],
+  opts: BuildHarOptions = {},
+): object {
+  const obfuscate = opts.obfuscate === true;
+  const custom = opts.custom ?? [];
   const entries = events
     .filter((e): e is NetworkEvent => e.kind === 'network')
-    .map((e) => {
+    .map((raw) => {
+      const e = prepareNetworkEvent(raw, obfuscate, custom);
       const started = new Date(e.t).toISOString();
       const reqHeaders = e.requestHeaders ?? {};
       const resHeaders = e.responseHeaders ?? {};

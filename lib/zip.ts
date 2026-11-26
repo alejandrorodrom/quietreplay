@@ -100,7 +100,11 @@ export async function buildZipBlob(
   if (hasNetwork) {
     zip.file(
       'network.har',
-      JSON.stringify(buildHar(clean), null, 2),
+      JSON.stringify(
+        buildHar(clean, { obfuscate, custom }),
+        null,
+        2,
+      ),
     );
   }
 

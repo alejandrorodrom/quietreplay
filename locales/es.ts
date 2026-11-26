@@ -33,9 +33,11 @@ export const es: Record<MessageKey, string> = {
     'Guarda los datos que la página envía y recibe. Déjalo activado salvo que el archivo quede demasiado grande.',
   videoEnabled: 'Grabar un video',
   videoEnabledHint: 'Un video de la página, para verlo después.',
-  obfuscationEnabled: 'Ocultar contraseñas y datos privados',
+  obfuscationEnabled: 'Ocultar contraseñas y datos privados (beta)',
   obfuscationHint:
-    'Viene apagado. Si lo activas, las contraseñas y los datos privados se tapan en el archivo, y los campos se ven borrosos en las capturas. El video es la pantalla tal como la viste.',
+    'Beta. Viene apagado. Si lo activas, QuietReplay tapa contraseñas y datos privados en todos los archivos que escribe (incluida la lista de red), y difumina campos en las capturas. El video sigue siendo la pantalla tal como la viste.',
+  screenshotsBetaHint:
+    'Capturas (beta): Chrome captura la ventana que está delante. Mantén visible la pestaña que estás grabando, o una captura puede mostrar otra página.',
   downloadSubfolder: 'Carpeta en Descargas',
   downloadSubfolderHint:
     'Los archivos van dentro de esta carpeta. Si la borras, la carpeta se llama quietreplay.',

@@ -81,7 +81,7 @@ La carpeta, el idioma y **Ocultar contraseñas y datos privados** se usan al pul
 | **Idioma** | El de Chrome | English o Español, para QuietReplay y para el informe legible. |
 | **Guardar lo que carga la página** | Activado | Guarda los datos que la página envía y recibe. Apágalo si el archivo quedaría demasiado grande. El archivo sigue anotando que hubo una petición. |
 | **Grabar un video** | Activado | Un video de la página, para verlo después. |
-| **Ocultar contraseñas y datos privados** | Apagado | Tapa contraseñas y datos privados en el archivo, y pone borrosos los campos en las capturas. El video es la pantalla tal como la viste. |
+| **Ocultar contraseñas y datos privados (beta)** | Apagado | Beta. Tapa contraseñas y datos privados en todos los archivos guardados (incluida la lista de red), y pone borrosos los campos en las capturas. El video es la pantalla tal como la viste. |
 | **Carpeta en Descargas** | `quietreplay` | Los archivos van dentro de esta carpeta. Si la borras, se usa el nombre `quietreplay`. Se quitan las barras. |
 | **Más formas de ocultar** | Vacío | Solo se usa si **Ocultar contraseñas y datos privados** está activado. Se abre solo si ya guardaste algo aquí. |
 
@@ -104,7 +104,7 @@ El archivo guarda todo el tiempo desde **Grabar** hasta **Detener y guardar**. N
 | Entra | No entra |
 |-------|----------|
 | Los clics, con las palabras del botón o del enlace (no el texto que hay dentro de un campo) | Lo que escribiste, guardado como el contenido de un campo |
-| Cada tecla que pulsas. En un campo de contraseña la nota es `*`. En los demás campos es la tecla, salvo que ocultar esté activado: entonces las letras de los campos de texto también son `*`. Mayús, Ctrl, Alt y la tecla Comando solas no se anotan. El espacio se escribe como Space. | Otras pestañas |
+| Cada tecla que pulsas. En un campo de contraseña la nota es `*`. En los demás campos es la tecla, salvo que ocultar esté activado: entonces las letras de los campos de texto también son `*`. Mayús, Ctrl, Alt y la tecla Comando solas no se anotan. El espacio se escribe como Space. | Otras pestañas (capturas en beta: mantén visible la pestaña grabada para que Chrome no capture otra ventana) |
 | Cada vez que la página cambia de dirección, con la dirección y el título | Imágenes, estilos y otros archivos que el navegador carga por su cuenta |
 | Los errores que encuentra la página | Las direcciones de la propia QuietReplay |
 | Los mensajes que la página escribe para sí misma (lo que un desarrollador llama consola) | |

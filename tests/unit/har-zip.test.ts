@@ -224,6 +224,38 @@ describe('ZIP', () => {
     ]);
   });
 
+  it('redacts secrets in network.har when obfuscation is on', async () => {
+    const { blob } = await buildZipBlob(sample, {
+      ...DEFAULT_SETTINGS,
+      obfuscationEnabled: true,
+    }, { extensionVersion: '1.0.0' });
+    const JSZip = (await import('jszip')).default;
+    const zip = await JSZip.loadAsync(blob);
+    const har = JSON.parse(await zip.file('network.har')!.async('string')) as {
+      log: {
+        entries: {
+          request: { url: string; headers: { name: string; value: string }[] };
+        }[];
+      };
+    };
+    const entry = har.log.entries[0]!;
+    expect(entry.request.url).not.toContain('secret');
+    expect(entry.request.url).toContain('[REDACTED]');
+    const auth = entry.request.headers.find(
+      (h) => h.name.toLowerCase() === 'authorization',
+    );
+    expect(auth?.value).toContain('[REDACTED]');
+
+    const events = JSON.parse(
+      await zip.file('events.json')!.async('string'),
+    ) as { kind: string; url?: string; requestHeaders?: Record<string, string> }[];
+    const net = events.find((e) => e.kind === 'network')!;
+    expect(net.url).toContain('[REDACTED]');
+    expect(net.requestHeaders?.Authorization ?? net.requestHeaders?.authorization).toContain(
+      '[REDACTED]',
+    );
+  });
+
   it('drops extension-owned HAR entries from the zip', async () => {
     const withExt: CapturedEvent[] = [
       ...sample,

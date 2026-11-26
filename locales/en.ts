@@ -31,9 +31,11 @@ export const en = {
     'Keeps the data the page sends and receives. Leave this on unless the file would be too large.',
   videoEnabled: 'Record a video',
   videoEnabledHint: 'A video of the page, so you can watch it later.',
-  obfuscationEnabled: 'Hide passwords and private details',
+  obfuscationEnabled: 'Hide passwords and private details (beta)',
   obfuscationHint:
-    'Off until you turn it on. Passwords and private text are covered in the file, and fields look blurred in screenshots. The video is the screen as you saw it.',
+    'Beta. Off until you turn it on. When on, QuietReplay covers passwords and private text in every file it writes (including the network list), and blurs fields in screenshots. The video is still the screen as you saw it.',
+  screenshotsBetaHint:
+    'Screenshots (beta): Chrome captures the window that is in front. Keep the tab you are recording visible, or a screenshot may show another page.',
   downloadSubfolder: 'Folder in Downloads',
   downloadSubfolderHint:
     'Files go inside this folder. If you clear it, the folder name is quietreplay.',

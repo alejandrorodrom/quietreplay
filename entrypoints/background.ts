@@ -1,5 +1,10 @@
 import { base64ToBlob } from '../lib/binary';
-import { CircularBuffer } from '../lib/buffer';
+import {
+  CircularBuffer,
+  MAX_NETWORK_BODY_CHARS,
+  networkBodyChars,
+  type PushResult,
+} from '../lib/buffer';
 import { isExtensionNoise } from '../lib/filter-extension';
 import {
   defaultZipFilename,
@@ -23,6 +28,8 @@ type TabState = {
   eventName: string;
   lastCaptureAt: number;
   networkBodies: Map<string, StoredBody>;
+  /** Characters retained across networkBodies values. */
+  networkBodyChars: number;
   originPattern?: string;
 };
 
@@ -74,12 +81,44 @@ async function persistArmed() {
   await chrome.storage.session.set({ [ARMED_KEY]: payload });
 }
 
+function originPatternForUrl(url: string): string | undefined {
+  try {
+    if (!/^https?:/i.test(url)) return undefined;
+    return `${new URL(url).origin}/*`;
+  } catch {
+    return undefined;
+  }
+}
+
+/** Drop stale arms when the tab is gone or no longer matches the stored origin. */
+async function tabStillMatchesArm(
+  tabId: number,
+  originPattern: string | undefined,
+): Promise<boolean> {
+  try {
+    const tab = await chrome.tabs.get(tabId);
+    if (!tab.url) return false;
+    const current = originPatternForUrl(tab.url);
+    if (!current) return false;
+    if (originPattern && current !== originPattern) return false;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 async function restoreArmed() {
   const data = await chrome.storage.session.get(ARMED_KEY);
   const payload = (data[ARMED_KEY] ?? {}) as Record<string, PersistedArm>;
+  let changed = false;
   for (const [id, meta] of Object.entries(payload)) {
     const tabId = Number(id);
     if (!Number.isFinite(tabId) || tabs.has(tabId)) continue;
+    const ok = await tabStillMatchesArm(tabId, meta.originPattern);
+    if (!ok) {
+      changed = true;
+      continue;
+    }
     tabs.set(tabId, {
       status: 'armed',
       buffer: new CircularBuffer(),
@@ -87,11 +126,13 @@ async function restoreArmed() {
       eventName: meta.eventName,
       lastCaptureAt: 0,
       networkBodies: new Map(),
+      networkBodyChars: 0,
       originPattern: meta.originPattern,
     });
     reapplyBadge(tabId);
     void injectCapture(tabId, tabs.get(tabId)!);
   }
+  if (changed) await persistArmed();
 }
 
 async function setBadge(tabId: number, status: TabStatus) {
@@ -179,18 +220,29 @@ async function captureShot(tabId: number, st: TabState) {
     if (settings.obfuscationEnabled) {
       await new Promise((r) => setTimeout(r, 50));
     }
-    const dataUrl = await chrome.tabs.captureVisibleTab({
-      format: 'jpeg',
-      quality: 80,
-    });
+    // Chrome can only capture the focused tab in a window. Bind windowId to
+    // the armed tab's window (best effort); keep that tab visible while recording.
+    let windowId: number | undefined;
+    try {
+      const tab = await chrome.tabs.get(tabId);
+      windowId = tab.windowId;
+    } catch {
+      windowId = undefined;
+    }
+    const shotOpts = { format: 'jpeg' as const, quality: 80 };
+    const dataUrl =
+      typeof windowId === 'number'
+        ? await chrome.tabs.captureVisibleTab(windowId, shotOpts)
+        : await chrome.tabs.captureVisibleTab(shotOpts);
     await removeBlur(tabId);
-    st.buffer.push({
+    const push = st.buffer.push({
       kind: 'screenshot',
       t: now,
       id: `s-${now}`,
       mime: 'image/jpeg',
       dataUrl,
     });
+    if (push === 'full') void saveAndStopTab(tabId);
   } catch {
     try {
       await removeBlur(tabId);
@@ -284,6 +336,7 @@ async function armTab(tabId: number) {
     eventName,
     lastCaptureAt: 0,
     networkBodies: new Map(),
+    networkBodyChars: 0,
     originPattern,
   };
   tabs.set(tabId, st);
@@ -554,6 +607,10 @@ async function saveAndStopTab(tabId: number, customFilename?: string) {
   }
 }
 
+function maybeAutoSave(tabId: number, push: PushResult): void {
+  if (push === 'full') void saveAndStopTab(tabId);
+}
+
 function recordPageEvent(msg: {
   tabId?: number;
   event?: Record<string, unknown> & {
@@ -577,16 +634,24 @@ function recordPageEvent(msg: {
   if (ev.kind === 'network-body') {
     const key = `${ev.method}|${ev.url}|${ev.t}`;
     if (typeof ev.responseBody === 'string') {
+      const nextChars =
+        st.networkBodyChars + networkBodyChars(ev.responseBody);
+      if (nextChars > MAX_NETWORK_BODY_CHARS) {
+        void saveAndStopTab(tabId);
+        return;
+      }
       st.networkBodies.set(key, {
         body: ev.responseBody,
         encoding: ev.responseEncoding === 'base64' ? 'base64' : undefined,
         size: typeof ev.size === 'number' ? ev.size : undefined,
       });
+      st.networkBodyChars = nextChars;
     }
     return;
   }
   const { token: _t, ...rest } = ev;
-  st.buffer.push(rest as CapturedEvent);
+  const push = st.buffer.push(rest as CapturedEvent);
+  maybeAutoSave(tabId, push);
   if (rest.kind === 'click' || rest.kind === 'navigation') {
     void captureShot(tabId, st);
   }
@@ -615,7 +680,21 @@ export default defineBackground(() => {
   chrome.tabs.onUpdated.addListener((tabId, info) => {
     if (info.status !== 'loading' && info.status !== 'complete') return;
     const st = tabs.get(tabId);
-    if (st?.status === 'armed') void injectCapture(tabId, st);
+    if (st?.status === 'armed') {
+      void (async () => {
+        const ok = await tabStillMatchesArm(tabId, st.originPattern);
+        if (!ok) {
+          await disarmTab(tabId);
+          return;
+        }
+        // Same-origin navigations keep the arm; refresh pattern if missing.
+        if (!st.originPattern && info.url) {
+          st.originPattern = originPatternForUrl(info.url);
+          await persistArmed();
+        }
+        await injectCapture(tabId, st);
+      })();
+    }
     reapplyBadge(tabId);
   });
 

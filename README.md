@@ -81,7 +81,7 @@ The folder, the language, and **Hide passwords and private details** are used wh
 | **Language** | Chrome’s language | English or Español, for QuietReplay and for the readable report. |
 | **Save what the page loads** | On | Keeps the data the page sends and receives. Turn it off if the file would be too large. The file still notes that a request happened. |
 | **Record a video** | On | A video of the page, so you can watch it later. |
-| **Hide passwords and private details** | Off | Covers passwords and private text in the file, and blurs fields in screenshots. The video is the screen as you saw it. |
+| **Hide passwords and private details (beta)** | Off | Beta. Covers passwords and private text in every saved file (including the network list), and blurs fields in screenshots. The video is the screen as you saw it. |
 | **Folder in Downloads** | `quietreplay` | Files go inside this folder. If you clear it, the name `quietreplay` is used. Slashes are removed. |
 | **More ways to hide** | Empty | Only used when **Hide passwords and private details** is on. It opens by itself if you already saved something here. |
 
@@ -104,7 +104,7 @@ The file keeps the whole time from **Record** to **Stop and save**. There is no 
 | Included | Not included |
 |----------|----------------|
 | Clicks, as the words on the button or link (not the text sitting in a box) | What you typed, stored as the contents of a field |
-| Each key you press. In a password box the note is `*`. In other boxes it is the key itself, unless hiding is on, which also uses `*` for letters in text boxes. Shift, Ctrl, Alt, and the Command key alone are skipped. Space is written as Space. | Other tabs |
+| Each key you press. In a password box the note is `*`. In other boxes it is the key itself, unless hiding is on, which also uses `*` for letters in text boxes. Shift, Ctrl, Alt, and the Command key alone are skipped. Space is written as Space. | Other tabs (screenshots are beta: keep the recorded tab visible so Chrome does not capture another window) |
 | Each time the page changes address, with the address and the title | Pictures, styles, and other files the browser loads on its own |
 | Errors the page hits | QuietReplay’s own addresses |
 | Messages the page writes for itself (what a developer calls the console) | |
