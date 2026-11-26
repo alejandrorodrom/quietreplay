@@ -1,0 +1,46 @@
+{
+  "name": "quietreplay",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Record what happens on a Chrome page and save it on your computer. Press Record. Nothing is sent online.",
+  "type": "module",
+  "scripts": {
+    "dev": "wxt",
+    "build": "wxt build",
+    "zip": "wxt zip",
+    "compile": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test tests/e2e/classic.spec.ts",
+    "test:e2e:external": "playwright test tests/e2e/external.spec.ts",
+    "check:no-network": "tsx scripts/check-no-network.ts",
+    "postinstall": "wxt prepare"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alejandrorodrom/quietreplay.git"
+  },
+  "author": "Alejandro Rodriguez Romero",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "dependencies": {
+    "jszip": "^3.10.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@playwright/test": "^1.56.1",
+    "@types/chrome": "^0.1.24",
+    "eslint": "^9.39.1",
+    "globals": "^16.5.0",
+    "happy-dom": "^21.0.4",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.46.4",
+    "vite": "^7.1.12",
+    "vitest": "^3.2.4",
+    "wxt": "^0.20.11"
+  }
+}

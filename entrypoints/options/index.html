@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>QuietReplay settings</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main>
+      <h1 id="heading">Settings</h1>
+      <p id="options-intro" class="hint">
+        You can record without changing anything. These settings are already set
+        up.
+      </p>
+      <form id="options-form" aria-labelledby="heading">
+        <div class="field">
+          <label for="locale">Language</label>
+          <select id="locale" name="locale">
+            <option value="en">English</option>
+            <option value="es">Español</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <div class="switch-row">
+            <input
+              type="checkbox"
+              id="captureBodies"
+              name="captureBodies"
+              switch
+              aria-describedby="capture-bodies-hint"
+            />
+            <label for="captureBodies">Save what the page loads</label>
+          </div>
+          <p id="capture-bodies-hint" class="hint">
+            Includes the information the page asks for and receives. Best left
+            on.
+          </p>
+        </div>
+
+        <div class="field">
+          <div class="switch-row">
+            <input
+              type="checkbox"
+              id="videoEnabled"
+              name="videoEnabled"
+              switch
+              aria-describedby="video-hint"
+            />
+            <label for="videoEnabled">Record a video of the page</label>
+          </div>
+          <p id="video-hint" class="hint">
+            So you can watch later what happened on the screen.
+          </p>
+        </div>
+
+        <div class="field">
+          <div class="switch-row">
+            <input
+              type="checkbox"
+              id="obfuscationEnabled"
+              name="obfuscationEnabled"
+              switch
+              aria-describedby="obfuscation-hint"
+            />
+            <label for="obfuscationEnabled"
+              >Hide passwords and private information</label
+            >
+          </div>
+          <p id="obfuscation-hint" class="hint">
+            Hides passwords and blurs what you type. Starts off.
+          </p>
+        </div>
+
+        <div class="field">
+          <label for="downloadSubfolder">Folder inside Downloads</label>
+          <span id="folder-hint" class="hint"
+            >The file shows up inside this folder. If you clear it, quietreplay
+            is used.</span
+          >
+          <input
+            type="text"
+            id="downloadSubfolder"
+            name="downloadSubfolder"
+            autocomplete="off"
+            spellcheck="false"
+            enterkeyhint="done"
+            aria-describedby="folder-hint"
+          />
+        </div>
+
+        <details id="advanced">
+          <summary id="advanced-summary">More settings</summary>
+          <p id="advanced-hint" class="hint">
+            Leave this empty unless someone asked you to hide a specific text or
+            part of the page.
+          </p>
+
+          <div class="field">
+            <label for="customRedaction">Text you want hidden</label>
+            <span id="redact-help" class="hint"
+              >One per line. For example, a code you do not want in the
+              file.</span
+            >
+            <textarea
+              id="customRedaction"
+              name="customRedaction"
+              rows="4"
+              spellcheck="false"
+              enterkeyhint="done"
+              aria-describedby="redact-help"
+              data-error="redact-error"
+            ></textarea>
+            <span id="redact-error" class="error" hidden role="alert"></span>
+          </div>
+
+          <div class="field">
+            <label for="customBlur">Parts of the page you want blurred</label>
+            <span id="blur-help" class="hint"
+              >One per line. If you are not sure, leave this empty.</span
+            >
+            <textarea
+              id="customBlur"
+              name="customBlur"
+              rows="3"
+              spellcheck="false"
+              enterkeyhint="done"
+              aria-describedby="blur-help"
+            ></textarea>
+          </div>
+        </details>
+
+        <button type="submit" id="save">Save settings</button>
+        <p id="saved" class="hint" aria-live="polite" hidden>Settings saved</p>
+      </form>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

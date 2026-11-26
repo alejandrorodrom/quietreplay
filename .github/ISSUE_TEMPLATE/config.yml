@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation
+    url: https://github.com/alejandrorodrom/quietreplay/blob/main/README.md
+    about: Read the docs (README EN/ES) before opening an issue
+  - name: Security vulnerability
+    url: https://github.com/alejandrorodrom/quietreplay/security/advisories/new
+    about: Report a security issue privately (see SECURITY.md)

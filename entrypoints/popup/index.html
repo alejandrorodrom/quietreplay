@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>QuietReplay</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main>
+      <h1 id="title">QuietReplay</h1>
+      <p id="intro">
+        Press Record on the page you want to show. The file is saved to
+        Downloads.
+      </p>
+      <p id="status" class="status" aria-live="polite" data-state="idle">
+        <span class="status-dot" aria-hidden="true"></span>
+        <span id="status-text">Ready</span>
+      </p>
+      <form id="controls" aria-labelledby="title">
+        <div class="actions">
+          <button type="button" id="toggle" data-recording="false">
+            Record
+          </button>
+        </div>
+        <p id="video-status" class="video-status" hidden></p>
+        <div class="field" id="filename-field" hidden>
+          <label for="filename">File name</label>
+          <span id="filename-hint" class="hint"
+            >Optional. If you leave it as is, it is saved with this name.</span
+          >
+          <input
+            type="text"
+            id="filename"
+            name="filename"
+            autocomplete="off"
+            spellcheck="false"
+            enterkeyhint="done"
+            aria-describedby="filename-hint"
+          />
+        </div>
+        <div class="field">
+          <label for="locale">Language</label>
+          <select id="locale" name="locale">
+            <option value="en">English</option>
+            <option value="es">Español</option>
+          </select>
+        </div>
+        <p>
+          <a id="options" href="#">Settings</a>
+        </p>
+      </form>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

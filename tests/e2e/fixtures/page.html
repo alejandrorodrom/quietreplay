@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>QuietReplay fixture</title>
+  </head>
+  <body>
+    <h1>Fixture</h1>
+    <button id="boom" type="button">Throw</button>
+    <button id="fail" type="button">Fail request</button>
+    <p id="status">idle</p>
+    <script>
+      document.getElementById('boom').onclick = () => {
+        setTimeout(() => {
+          throw new Error('fixture boom');
+        }, 0);
+        document.getElementById('status').textContent = 'errored';
+      };
+      document.getElementById('fail').onclick = async () => {
+        try {
+          await fetch('/api/fail');
+        } catch (_) {}
+        document.getElementById('status').textContent = 'ready';
+      };
+    </script>
+  </body>
+</html>

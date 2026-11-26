@@ -1,0 +1,85 @@
+name: Publish extension release
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "If true, run checks and build only (no tag / GitHub Release)"
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  checks: write
+
+concurrency:
+  group: extension-publish-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  ci:
+    name: CI
+    uses: ./.github/workflows/ci.yml
+
+  e2e:
+    name: E2E
+    uses: ./.github/workflows/e2e.yml
+
+  npm-audit:
+    name: npm audit
+    uses: ./.github/workflows/npm-audit.yml
+
+  publish:
+    name: Publish
+    needs: [ci, e2e, npm-audit]
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build zip
+        run: pnpm run zip
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: quietreplay-extension
+          path: |
+            .output/*.zip
+            web-ext-artifacts/*.zip
+
+      - name: Create tag and GitHub Release
+        if: ${{ !inputs.dry_run }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          VERSION="$(node -p "require('./package.json').version")"
+          TAG="v${VERSION}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git ls-remote --tags origin "refs/tags/$TAG" | grep -q .; then
+            echo "Tag $TAG already exists on origin."
+            exit 0
+          fi
+          git tag -a "$TAG" -m "Release $TAG"
+          git push origin "$TAG"
+          ZIP="$(ls .output/*.zip web-ext-artifacts/*.zip 2>/dev/null | head -n1)"
+          gh release create "$TAG" ${ZIP:+"$ZIP"} --title "$TAG" --notes "QuietReplay $VERSION — see CHANGELOG.md"

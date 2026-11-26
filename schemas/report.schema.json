@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://quietreplay.local/schemas/report.schema.json",
+  "title": "QuietReplay report.json",
+  "type": "object",
+  "required": [
+    "schema",
+    "createdAt",
+    "extensionVersion",
+    "page",
+    "environment",
+    "window",
+    "summary",
+    "errors",
+    "failedRequests",
+    "steps",
+    "files",
+    "redaction"
+  ],
+  "properties": {
+    "schema": { "const": "quietreplay/v1" },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "extensionVersion": { "type": "string" },
+    "page": {
+      "type": "object",
+      "required": ["url", "title"],
+      "properties": {
+        "url": { "type": "string" },
+        "title": { "type": "string" }
+      }
+    },
+    "environment": {
+      "type": "object",
+      "required": ["userAgent", "viewport", "dpr", "locale", "timezone"],
+      "properties": {
+        "userAgent": { "type": "string" },
+        "viewport": {
+          "type": "array",
+          "items": { "type": "number" },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "dpr": { "type": "number" },
+        "locale": { "type": "string" },
+        "timezone": { "type": "string" }
+      }
+    },
+    "window": {
+      "type": "object",
+      "required": ["from", "to", "seconds"],
+      "properties": {
+        "from": { "type": "string" },
+        "to": { "type": "string" },
+        "seconds": { "type": "number" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["errors", "failedRequests", "clicks", "screenshots"],
+      "properties": {
+        "errors": { "type": "integer" },
+        "failedRequests": { "type": "integer" },
+        "clicks": { "type": "integer" },
+        "screenshots": { "type": "integer" }
+      }
+    },
+    "errors": { "type": "array" },
+    "failedRequests": { "type": "array" },
+    "steps": { "type": "array" },
+    "files": {
+      "type": "object",
+      "required": ["har", "console", "events", "screenshots", "video"],
+      "properties": {
+        "har": { "type": ["string", "null"] },
+        "console": { "type": "string" },
+        "events": { "type": "string" },
+        "screenshots": { "type": "array", "items": { "type": "string" } },
+        "video": { "type": ["string", "null"] }
+      }
+    },
+    "redaction": {
+      "type": "object",
+      "required": ["version", "enabled", "customRules"],
+      "properties": {
+        "version": { "type": "integer" },
+        "enabled": { "type": "boolean" },
+        "customRules": { "type": "integer" }
+      }
+    }
+  },
+  "additionalProperties": false
+}

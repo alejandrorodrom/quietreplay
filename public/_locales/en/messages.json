@@ -1,0 +1,22 @@
+{
+  "extName": {
+    "message": "QuietReplay",
+    "description": "Extension name shown in Chrome."
+  },
+  "extDescription": {
+    "message": "Record what happens on a page and save it on your computer. Press Record. Nothing is sent online.",
+    "description": "Short description in the Chrome extensions list. Keep it under 132 characters."
+  },
+  "actionTitle": {
+    "message": "QuietReplay — record this page",
+    "description": "Tooltip on the toolbar button."
+  },
+  "cmdArm": {
+    "message": "Start recording, or stop and save",
+    "description": "Keyboard shortcut description."
+  },
+  "cmdSave": {
+    "message": "Stop and save the recording",
+    "description": "Keyboard shortcut description."
+  }
+}

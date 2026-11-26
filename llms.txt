@@ -1,0 +1,18 @@
+# QuietReplay
+
+> Records what happens on a Chrome page and saves it on your computer. Press Record. Nothing is sent online, and there is no account. Under the hood it is a local MV3 extension: full session of a tab from Record to Stop (console, network, clicks, screenshots, optional video) in a ZIP, with no network calls.
+
+## Docs
+
+- [README](README.md): install, shortcuts, principles
+- [README (ES)](README.es.md): misma guía en español
+- [Privacy](PRIVACY.md): no data collection
+- [Privacy (ES)](PRIVACY.es.md)
+- [Contributing](CONTRIBUTING.md): local setup and PR checklist
+- [Security](SECURITY.md): private vulnerability reporting
+- [Changelog](CHANGELOG.md): release notes
+
+## Optional
+
+- [Code of Conduct](CODE_OF_CONDUCT.md)
+- [report.schema.json](schemas/report.schema.json): ZIP report.json schema

@@ -1,0 +1,66 @@
+import type { MessageKey } from './en';
+
+export const es: Record<MessageKey, string> = {
+  appName: 'QuietReplay',
+  introIdle:
+    'Pulsa Grabar en la página que quieres mostrar. El archivo se guarda en Descargas.',
+  introArmed:
+    'Haz en la página lo que quieres mostrar. Cuando termines, pulsa Detener y guardar.',
+  introSaving: 'Estamos guardando el archivo en Descargas.',
+  introReady: 'Listo. Lo encontrarás en tu carpeta de Descargas.',
+  statusIdle: 'Listo',
+  statusArmed: 'Grabando…',
+  statusSaving: 'Guardando…',
+  statusReady: 'Guardado',
+  videoOn: 'La pantalla también se está grabando',
+  videoOff: 'Preparando el video…',
+  videoError: 'No se pudo grabar el video. El resto sí se guarda.',
+  arm: 'Grabar',
+  stop: 'Detener',
+  stopAndSave: 'Detener y guardar',
+  zipFilename: 'Nombre del archivo',
+  zipFilenameHint: 'Opcional. Si no lo cambias, se guarda con este nombre.',
+  save: 'Guardar',
+  openOptions: 'Ajustes',
+  language: 'Idioma',
+  spanish: 'Español',
+  english: 'Inglés',
+  optionsTitle: 'Ajustes',
+  optionsIntro:
+    'Puedes grabar sin cambiar nada. Estos ajustes ya vienen preparados.',
+  captureBodies: 'Guardar lo que carga la página',
+  captureBodiesHint:
+    'Incluye la información que la página pide y recibe. Conviene dejarlo activado.',
+  videoEnabled: 'Grabar un video de la página',
+  videoEnabledHint: 'Así se puede ver después lo que ocurrió en la pantalla.',
+  obfuscationEnabled: 'Ocultar contraseñas y datos privados',
+  obfuscationHint:
+    'Tapa contraseñas y difumina lo que escribes. Empieza apagado.',
+  downloadSubfolder: 'Carpeta dentro de Descargas',
+  downloadSubfolderHint:
+    'El archivo aparece dentro de esta carpeta. Si la borras, se usa quietreplay.',
+  advancedSummary: 'Más ajustes',
+  advancedHint:
+    'Déjalo vacío salvo que alguien te haya pedido ocultar un texto o una parte concreta de la página.',
+  customRedaction: 'Textos que quieres ocultar',
+  customRedactionHint:
+    'Uno por línea. Por ejemplo, un código que no quieres que salga en el archivo.',
+  customBlur: 'Partes de la página que quieres difuminar',
+  customBlurHint: 'Una por línea. Si no sabes qué escribir, déjalo vacío.',
+  invalidPattern: 'Esta línea no se puede usar: {line}',
+  saveSettings: 'Guardar ajustes',
+  settingsSaved: 'Ajustes guardados',
+  reportTitle: 'Informe de QuietReplay',
+  reportSteps: 'Qué hiciste',
+  reportErrors: 'Errores de la página',
+  reportFailed: 'Lo que no cargó',
+  reportEnv: 'Tu navegador',
+  reportNoSteps: 'No se anotaron clics ni cambios de página.',
+  reportNoErrors: 'No apareció ningún error.',
+  reportNoFailed: 'Nada falló al cargar.',
+  stepClick: 'Clic en «{text}»',
+  stepClickPage: 'Clic en la página',
+  stepKey: 'Pulsó la tecla {text}',
+  stepKeyBare: 'Pulsó una tecla',
+  stepOpen: 'Abrió',
+};

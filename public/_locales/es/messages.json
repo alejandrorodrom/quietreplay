@@ -1,0 +1,22 @@
+{
+  "extName": {
+    "message": "QuietReplay",
+    "description": "Nombre de la extensión en Chrome."
+  },
+  "extDescription": {
+    "message": "Graba lo que pasa en una página y lo guarda en tu equipo. Pulsa Grabar. No se envía nada a internet.",
+    "description": "Descripción corta en la lista de extensiones. Menos de 132 caracteres."
+  },
+  "actionTitle": {
+    "message": "QuietReplay — grabar esta página",
+    "description": "Texto al pasar el cursor por el botón de la barra."
+  },
+  "cmdArm": {
+    "message": "Empezar a grabar, o parar y guardar",
+    "description": "Descripción del atajo de teclado."
+  },
+  "cmdSave": {
+    "message": "Parar y guardar la grabación",
+    "description": "Descripción del atajo de teclado."
+  }
+}
