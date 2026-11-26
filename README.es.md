@@ -36,13 +36,30 @@ Puedes grabar sin cambiar nada. Si abres **Ajustes** puedes elegir:
 
 - si se guarda lo que carga la página
 - si se graba un video
-- si se ocultan contraseñas y datos privados (viene apagado)
+- si se ocultan contraseñas y datos privados (viene apagado; **beta**)
 - la carpeta dentro de Descargas
 - el idioma: **Español / English**
 
 La grabación guarda todo desde **Grabar** hasta **Detener y guardar**.
 
-En **Más ajustes** se puede pedir que se oculte un texto o una parte concreta de la página. Si no sabes qué poner, déjalo vacío.
+En **Más ajustes** (solo tiene efecto si activaste ocultar contraseñas y datos privados) puedes personalizar qué se tapa. Si no sabes qué poner, déjalos vacíos.
+
+**Textos que quieres ocultar** — escribe una palabra o código por línea. Si aparece en el informe o en lo que cargó la página, se sustituye por `[REDACTED]`. Por ejemplo:
+
+```
+ana.garcia@empresa.com
+EMP-94821
+sk_live_abc123
+```
+
+**Partes de la página que quieres difuminar** — escribe un selector CSS por línea (el mismo tipo de selector que usa Inspeccionar en Chrome). Esas zonas se ven borrosas en capturas y video. Por ejemplo:
+
+```
+#perfil
+.dato-privado
+input[name="telefono"]
+[data-testid="numero-cuenta"]
+```
 
 ## Para quien la instala desde el código
 
