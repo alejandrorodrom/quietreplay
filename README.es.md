@@ -7,6 +7,19 @@
   </picture>
 </p>
 
+<p align="center">
+  <a href="https://github.com/alejandrorodrom/quietreplay/actions/workflows/ci.yml"><img src="https://github.com/alejandrorodrom/quietreplay/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/alejandrorodrom/quietreplay/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/alejandrorodrom/quietreplay/ci.yml?label=tests" alt="Tests"></a>
+  <a href="https://github.com/alejandrorodrom/quietreplay/actions/workflows/npm-audit.yml"><img src="https://github.com/alejandrorodrom/quietreplay/actions/workflows/npm-audit.yml/badge.svg" alt="npm audit"></a>
+  <img src="https://img.shields.io/badge/network-none-lightgrey" alt="No network">
+  <img src="https://img.shields.io/badge/Chromium-supported-4285F4?logo=chromium&logoColor=white" alt="Chromium">
+  <img src="https://img.shields.io/badge/Chrome-116%2B-4285F4?logo=googlechrome&logoColor=white" alt="Chrome 116+">
+  <img src="https://img.shields.io/badge/Edge-116%2B-0078D7?logo=microsoftedge&logoColor=white" alt="Microsoft Edge 116+">
+  <a href="https://github.com/alejandrorodrom/quietreplay/releases"><img src="https://img.shields.io/github/v/release/alejandrorodrom/quietreplay?label=version" alt="Version"></a>
+  <a href="./license"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT"></a>
+  <img src="https://img.shields.io/badge/node-%3E%3D22.12-brightgreen" alt="Node.js >=22.12">
+</p>
+
 # QuietReplay
 
 QuietReplay graba lo que haces en una página web y guarda un archivo en tu equipo, para verlo después o enviárselo a alguien. Pulsa **Grabar**, haz lo que quieres mostrar y pulsa **Detener y guardar**. No se envía nada a internet y no hay que crear una cuenta.
@@ -200,7 +213,7 @@ pnpm run build
 
 Abre `chrome://extensions` → Modo desarrollador → **Cargar descomprimida** → elige `.output/chrome-mv3`.
 
-Hace falta Chrome 116 o posterior. La extensión no abre conexiones de red (`connect-src 'none'`).
+Requiere un navegador Chromium: Chrome 116+ o Microsoft Edge 116+. La extensión no abre conexiones de red (`connect-src 'none'`).
 
 ## Scripts
 

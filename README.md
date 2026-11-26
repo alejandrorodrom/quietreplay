@@ -7,6 +7,19 @@
   </picture>
 </p>
 
+<p align="center">
+  <a href="https://github.com/alejandrorodrom/quietreplay/actions/workflows/ci.yml"><img src="https://github.com/alejandrorodrom/quietreplay/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/alejandrorodrom/quietreplay/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/alejandrorodrom/quietreplay/ci.yml?label=tests" alt="Tests"></a>
+  <a href="https://github.com/alejandrorodrom/quietreplay/actions/workflows/npm-audit.yml"><img src="https://github.com/alejandrorodrom/quietreplay/actions/workflows/npm-audit.yml/badge.svg" alt="npm audit"></a>
+  <img src="https://img.shields.io/badge/network-none-lightgrey" alt="No network">
+  <img src="https://img.shields.io/badge/Chromium-supported-4285F4?logo=chromium&logoColor=white" alt="Chromium">
+  <img src="https://img.shields.io/badge/Chrome-116%2B-4285F4?logo=googlechrome&logoColor=white" alt="Chrome 116+">
+  <img src="https://img.shields.io/badge/Edge-116%2B-0078D7?logo=microsoftedge&logoColor=white" alt="Microsoft Edge 116+">
+  <a href="https://github.com/alejandrorodrom/quietreplay/releases"><img src="https://img.shields.io/github/v/release/alejandrorodrom/quietreplay?label=version" alt="Version"></a>
+  <a href="./license"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT"></a>
+  <img src="https://img.shields.io/badge/node-%3E%3D22.12-brightgreen" alt="Node.js >=22.12">
+</p>
+
 # QuietReplay
 
 QuietReplay records what you do on a web page and saves a file on your computer, so you can watch it later or send it to someone. Press **Record**, do what you want to show, then press **Stop and save**. Nothing is sent online, and there is no account.
@@ -200,7 +213,7 @@ pnpm run build
 
 Open `chrome://extensions` → Developer mode → **Load unpacked** → select `.output/chrome-mv3`.
 
-Requires Chrome 116 or newer. The extension opens no network connections (`connect-src 'none'`).
+Requires a Chromium browser: Chrome 116+ or Microsoft Edge 116+. The extension opens no network connections (`connect-src 'none'`).
 
 ## Scripts
 
