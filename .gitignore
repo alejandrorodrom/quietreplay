@@ -19,6 +19,11 @@ playwright-report
 blob-report
 coverage
 
+# Generated store helpers (screenshots themselves are kept)
+store/assets/*.zip
+store/assets/popup-*.png
+store/assets/*-debug.png
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
