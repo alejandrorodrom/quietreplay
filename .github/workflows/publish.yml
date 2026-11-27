@@ -78,9 +78,12 @@ jobs:
         id: zip
         run: |
           set -euo pipefail
-          ZIP="$(ls .output/*.zip web-ext-artifacts/*.zip 2>/dev/null | head -n1)"
+          # Avoid `ls a/*.zip b/*.zip` under pipefail: a missing directory
+          # makes ls exit 2 even when .output already has the artifact.
+          ZIP="$(find .output web-ext-artifacts -maxdepth 1 -type f -name '*.zip' 2>/dev/null | sort | tail -n1 || true)"
           if [ -z "${ZIP}" ]; then
             echo "No extension zip found" >&2
+            find .output -maxdepth 2 -type f 2>/dev/null | head -n50 >&2 || true
             exit 1
           fi
           echo "path=${ZIP}" >> "$GITHUB_OUTPUT"
