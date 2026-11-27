@@ -41,6 +41,10 @@ jobs:
           results_format: sarif
           publish_results: true
           fail_on_publish_error: true
+          # Prefer repository rulesets (scripts/configure-github-protection.sh)
+          # so Branch-Protection is readable without an admin PAT. If you keep
+          # classic branch protection, set secret SCORECARD_TOKEN and add:
+          #   repo_token: ${{ secrets.SCORECARD_TOKEN }}
 
       - name: Upload artifact
         if: ${{ always() }}
