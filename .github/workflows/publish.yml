@@ -23,6 +23,16 @@ on:
         required: false
         type: boolean
         default: false
+      check_chrome_status:
+        description: "Fetch and print Chrome Web Store review/publish status (uses CHROME_* secrets; also runs automatically with upload_chrome)"
+        required: false
+        type: boolean
+        default: false
+      force_chrome_upload:
+        description: "Allow Chrome upload even when submitted revision is PENDING_REVIEW"
+        required: false
+        type: boolean
+        default: false
 
 # Least privilege at workflow level; write scopes only on the publish job.
 permissions:
@@ -154,7 +164,7 @@ jobs:
           \`\`\`"
 
       - name: Require Chrome Web Store secrets
-        if: ${{ !inputs.dry_run && inputs.upload_chrome }}
+        if: ${{ !inputs.dry_run && (inputs.upload_chrome || inputs.check_chrome_status) }}
         env:
           CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
           CHROME_CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
@@ -171,6 +181,20 @@ jobs:
             fi
           done
           exit "$missing"
+
+      - name: Chrome Web Store status (before)
+        id: chrome_status
+        if: ${{ !inputs.dry_run && (inputs.upload_chrome || inputs.check_chrome_status) }}
+        env:
+          CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
+          REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
+          EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
+          PUBLISHER_ID: ${{ secrets.CHROME_PUBLISHER_ID }}
+          FAIL_IF_PENDING: ${{ inputs.upload_chrome && !inputs.force_chrome_upload && '1' || '0' }}
+        run: |
+          set -euo pipefail
+          pnpm exec tsx scripts/chrome-webstore-status.ts
 
       - name: Upload to Chrome Web Store (draft)
         if: ${{ !inputs.dry_run && inputs.upload_chrome }}
@@ -201,6 +225,18 @@ jobs:
           pnpm dlx chrome-webstore-upload-cli@4 publish \
             --extension-id "$EXTENSION_ID" \
             --publisher-id "$PUBLISHER_ID"
+
+      - name: Chrome Web Store status (after)
+        if: ${{ !inputs.dry_run && inputs.upload_chrome }}
+        env:
+          CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
+          REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
+          EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
+          PUBLISHER_ID: ${{ secrets.CHROME_PUBLISHER_ID }}
+        run: |
+          set -euo pipefail
+          pnpm exec tsx scripts/chrome-webstore-status.ts
 
       - name: Require Edge Add-ons secrets
         if: ${{ !inputs.dry_run && inputs.upload_edge }}

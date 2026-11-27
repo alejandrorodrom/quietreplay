@@ -270,6 +270,16 @@ Workflow: `.github/workflows/publish.yml` (manual `workflow_dispatch`, environme
 | `upload_chrome` | false | Upload ZIP to Chrome Web Store as a **draft** |
 | `upload_edge` | false | Upload ZIP to Edge Add-ons (**draft** unless `publish_stores`) |
 | `publish_stores` | false | After upload: Chrome `publish` + Edge submit for certification |
+| `check_chrome_status` | false | Print Chrome review/publish state (`PENDING_REVIEW`, `STAGED`, `PUBLISHED`, …); also runs with `upload_chrome` |
+| `force_chrome_upload` | false | Allow upload even when submitted revision is `PENDING_REVIEW` |
+
+While a revision is **`PENDING_REVIEW`**, `upload_chrome` fails unless `force_chrome_upload` is true (the API usually rejects concurrent submissions anyway).
+
+Local status check (same secrets as env vars `CLIENT_ID`, `CLIENT_SECRET`, `REFRESH_TOKEN`, `EXTENSION_ID`, `PUBLISHER_ID`):
+
+```bash
+pnpm run store:chrome-status
+```
 
 Recommended first automated run: `upload_chrome` and/or `upload_edge` = true, `publish_stores` = false. Confirm the draft in each dashboard, then re-run with `publish_stores` = true (or publish from the UI).
 
