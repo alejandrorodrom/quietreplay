@@ -9,32 +9,32 @@ on:
         type: boolean
         default: false
       upload_chrome:
-        description: "Upload ZIP to Chrome Web Store as a draft (requires first manual listing + secrets)"
+        description: "Chrome path: upload ZIP as draft (and print status)"
         required: false
         type: boolean
         default: false
       upload_edge:
-        description: "Upload ZIP to Edge Add-ons as a draft (requires first published listing + secrets)"
+        description: "Edge path: upload ZIP as draft (and submit if publish_stores)"
         required: false
         type: boolean
         default: false
       publish_stores:
-        description: "After upload, submit Chrome for publish and Edge for certification (otherwise draft only)"
+        description: "After upload: Chrome publish + Edge certification submit"
         required: false
         type: boolean
         default: false
-      check_chrome_status:
-        description: "Fetch and print Chrome Web Store review/publish status (uses CHROME_* secrets; also runs automatically with upload_chrome)"
+      check_status:
+        description: "Only check/report store status (Chrome: API status; Edge: reminder — no read-only review API)"
         required: false
         type: boolean
         default: false
-      force_chrome_upload:
-        description: "Allow Chrome upload even when submitted revision is PENDING_REVIEW"
+      force_upload:
+        description: "If a store is in review: Chrome still uploads; Edge warns and does not fail the job"
         required: false
         type: boolean
         default: false
 
-# Least privilege at workflow level; write scopes only on the publish job.
+# Least privilege at workflow level; write scopes only where needed.
 permissions:
   contents: read
 
@@ -55,8 +55,8 @@ jobs:
     name: npm audit
     uses: ./.github/workflows/npm-audit.yml
 
-  publish:
-    name: Publish
+  prepare:
+    name: Build & release
     needs: [ci, e2e, npm-audit]
     runs-on: ubuntu-latest
     environment: production
@@ -64,6 +64,9 @@ jobs:
       contents: write
       id-token: write
       attestations: write
+    outputs:
+      zip_name: ${{ steps.zip.outputs.name }}
+      version: ${{ steps.zip.outputs.version }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -88,8 +91,6 @@ jobs:
         id: zip
         run: |
           set -euo pipefail
-          # Avoid `ls a/*.zip b/*.zip` under pipefail: a missing directory
-          # makes ls exit 2 even when .output already has the artifact.
           ZIP="$(find .output web-ext-artifacts -maxdepth 1 -type f -name '*.zip' 2>/dev/null | sort | tail -n1 || true)"
           if [ -z "${ZIP}" ]; then
             echo "No extension zip found" >&2
@@ -98,6 +99,7 @@ jobs:
           fi
           echo "path=${ZIP}" >> "$GITHUB_OUTPUT"
           echo "name=$(basename "${ZIP}")" >> "$GITHUB_OUTPUT"
+          echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
 
       - name: Generate SBOM
         uses: anchore/sbom-action@dfcb83b97731532d72be422cbc51ee64adb6fd56 # v0.24.4
@@ -121,7 +123,6 @@ jobs:
         run: |
           set -euo pipefail
           cp "${BUNDLE_PATH}" "./${{ steps.zip.outputs.name }}.sigstore.json"
-          # Scorecard Signed-Releases looks for *.intoto.jsonl among release assets.
           cp "${BUNDLE_PATH}" "./${{ steps.zip.outputs.name }}.intoto.jsonl"
 
       - name: Upload artifact
@@ -131,6 +132,7 @@ jobs:
           path: |
             ${{ steps.zip.outputs.path }}
             quietreplay.spdx.json
+          if-no-files-found: error
 
       - name: Create tag and GitHub Release
         if: ${{ !inputs.dry_run }}
@@ -163,8 +165,51 @@ jobs:
           gh attestation verify --repo alejandrorodrom/quietreplay ./$(basename "$ZIP_PATH")
           \`\`\`"
 
+  chrome:
+    name: Chrome Web Store
+    needs: prepare
+    if: ${{ !inputs.dry_run && (inputs.upload_chrome || inputs.check_status) }}
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 1
+
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "22"
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Download zip artifact
+        if: ${{ inputs.upload_chrome }}
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          name: quietreplay-extension
+          path: dist-upload
+
+      - name: Resolve zip path
+        if: ${{ inputs.upload_chrome }}
+        id: zip
+        run: |
+          set -euo pipefail
+          ZIP="$(find dist-upload -type f -name '*.zip' | sort | tail -n1)"
+          if [ -z "${ZIP}" ]; then
+            echo "No zip in artifact" >&2
+            exit 1
+          fi
+          echo "path=${ZIP}" >> "$GITHUB_OUTPUT"
+
       - name: Require Chrome Web Store secrets
-        if: ${{ !inputs.dry_run && (inputs.upload_chrome || inputs.check_chrome_status) }}
         env:
           CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
           CHROME_CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
@@ -176,28 +221,39 @@ jobs:
           missing=0
           for name in CHROME_CLIENT_ID CHROME_CLIENT_SECRET CHROME_REFRESH_TOKEN CHROME_EXTENSION_ID CHROME_PUBLISHER_ID; do
             if [ -z "${!name}" ]; then
-              echo "::error::Missing secret $name in the production environment. See CHROMEWEBSTORE.md → GitHub Actions."
+              echo "::error::Missing secret $name in the production environment."
               missing=1
             fi
           done
           exit "$missing"
 
-      - name: Chrome Web Store status (before)
+      - name: Chrome status (before)
         id: chrome_status
-        if: ${{ !inputs.dry_run && (inputs.upload_chrome || inputs.check_chrome_status) }}
         env:
           CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
           CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
           REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
           EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
           PUBLISHER_ID: ${{ secrets.CHROME_PUBLISHER_ID }}
-          FAIL_IF_PENDING: ${{ inputs.upload_chrome && !inputs.force_chrome_upload && '1' || '0' }}
+          FAIL_IF_PENDING: ${{ inputs.upload_chrome && !inputs.force_upload && '1' || '0' }}
         run: |
           set -euo pipefail
           pnpm exec tsx scripts/chrome-webstore-status.ts
+          PUBLISHED="$(awk -F= '/^published_state=/{print $2}' "$GITHUB_OUTPUT" | tail -n1)"
+          SUBMITTED="$(awk -F= '/^submitted_state=/{print $2}' "$GITHUB_OUTPUT" | tail -n1)"
+          {
+            echo "## Chrome Web Store"
+            echo ""
+            echo "- published: \`${PUBLISHED:-none}\`"
+            echo "- submitted: \`${SUBMITTED:-none}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ "${SUBMITTED}" = "PENDING_REVIEW" ]; then
+            echo "::warning title=Chrome in review::Submitted revision is PENDING_REVIEW. Wait, or re-run with force_upload=true."
+            echo "- **In review** (\`PENDING_REVIEW\`). Use \`force_upload\` to upload anyway." >> "$GITHUB_STEP_SUMMARY"
+          fi
 
       - name: Upload to Chrome Web Store (draft)
-        if: ${{ !inputs.dry_run && inputs.upload_chrome }}
+        if: ${{ inputs.upload_chrome }}
         env:
           CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
           CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
@@ -213,7 +269,7 @@ jobs:
             --publisher-id "$PUBLISHER_ID"
 
       - name: Publish Chrome Web Store draft
-        if: ${{ !inputs.dry_run && inputs.upload_chrome && inputs.publish_stores }}
+        if: ${{ inputs.upload_chrome && inputs.publish_stores }}
         env:
           CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
           CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
@@ -226,8 +282,8 @@ jobs:
             --extension-id "$EXTENSION_ID" \
             --publisher-id "$PUBLISHER_ID"
 
-      - name: Chrome Web Store status (after)
-        if: ${{ !inputs.dry_run && inputs.upload_chrome }}
+      - name: Chrome status (after)
+        if: ${{ inputs.upload_chrome }}
         env:
           CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
           CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
@@ -238,8 +294,65 @@ jobs:
           set -euo pipefail
           pnpm exec tsx scripts/chrome-webstore-status.ts
 
+  edge:
+    name: Edge Add-ons
+    needs: prepare
+    if: ${{ !inputs.dry_run && (inputs.upload_edge || inputs.check_status) }}
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 1
+
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "22"
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Edge status note
+        if: ${{ inputs.check_status && !inputs.upload_edge }}
+        run: |
+          {
+            echo "## Edge Add-ons"
+            echo ""
+            echo "Microsoft **does not** expose a read-only review-status API."
+            echo "Check [Partner Center](https://partner.microsoft.com/dashboard) → Edge → QuietReplay."
+            echo ""
+            echo "To detect \`InProgressSubmission\`, run with \`upload_edge\` + \`publish_stores\`."
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "::notice title=Edge Add-ons::No read-only review API — open Partner Center for In review / In the Store."
+
+      - name: Download zip artifact
+        if: ${{ inputs.upload_edge }}
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          name: quietreplay-extension
+          path: dist-upload
+
+      - name: Resolve zip path
+        if: ${{ inputs.upload_edge }}
+        id: zip
+        run: |
+          set -euo pipefail
+          ZIP="$(find dist-upload -type f -name '*.zip' | sort | tail -n1)"
+          if [ -z "${ZIP}" ]; then
+            echo "No zip in artifact" >&2
+            exit 1
+          fi
+          echo "path=${ZIP}" >> "$GITHUB_OUTPUT"
+
       - name: Require Edge Add-ons secrets
-        if: ${{ !inputs.dry_run && inputs.upload_edge }}
+        if: ${{ inputs.upload_edge }}
         env:
           EDGE_CLIENT_ID: ${{ secrets.EDGE_CLIENT_ID }}
           EDGE_API_KEY: ${{ secrets.EDGE_API_KEY }}
@@ -249,22 +362,31 @@ jobs:
           missing=0
           for name in EDGE_CLIENT_ID EDGE_API_KEY EDGE_PRODUCT_ID; do
             if [ -z "${!name}" ]; then
-              echo "::error::Missing secret $name in the production environment. See CHROMEWEBSTORE.md → GitHub Actions."
+              echo "::error::Missing secret $name in the production environment."
               missing=1
             fi
           done
           exit "$missing"
 
-      - name: Upload to Edge Add-ons
-        if: ${{ !inputs.dry_run && inputs.upload_edge }}
-        uses: hamzahamidi/publish-to-edge-add-ons@4efbcdd7ee5fef9612ff586e4ad4a9adda919e02 # v1.0.0
-        with:
-          api-key: ${{ secrets.EDGE_API_KEY }}
-          client-id: ${{ secrets.EDGE_CLIENT_ID }}
-          product-id: ${{ secrets.EDGE_PRODUCT_ID }}
-          zip: ${{ steps.zip.outputs.path }}
-          publish: ${{ inputs.publish_stores }}
-          certification-notes: >-
+      - name: Upload / submit Edge Add-ons
+        if: ${{ inputs.upload_edge }}
+        env:
+          EDGE_API_KEY: ${{ secrets.EDGE_API_KEY }}
+          EDGE_CLIENT_ID: ${{ secrets.EDGE_CLIENT_ID }}
+          EDGE_PRODUCT_ID: ${{ secrets.EDGE_PRODUCT_ID }}
+          ZIP_PATH: ${{ steps.zip.outputs.path }}
+          PUBLISH: ${{ inputs.publish_stores && '1' || '0' }}
+          FORCE: ${{ inputs.force_upload && '1' || '0' }}
+          CERTIFICATION_NOTES: >-
             QuietReplay update. Test: open an https page → Record → interact →
             Stop and save → check Downloads for quietreplay-*.zip. No account;
             extension uses connect-src none. UI: English and Spanish.
+        run: |
+          set -euo pipefail
+          pnpm exec tsx scripts/edge-addons-publish.ts
+          {
+            echo "## Edge Add-ons"
+            echo ""
+            echo "- upload/submit finished (see job log for \`InProgressSubmission\` warnings)"
+            echo "- Partner Center remains the source of truth for **In review**"
+          } >> "$GITHUB_STEP_SUMMARY"
