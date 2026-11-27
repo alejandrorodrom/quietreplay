@@ -48,7 +48,9 @@ function logCredentialShape() {
   const id = requireEnv('CLIENT_ID');
   const secret = requireEnv('CLIENT_SECRET');
   const refresh = requireEnv('REFRESH_TOKEN');
-  console.log('OAuth credential shape (values hidden)');
+  const extensionId = requireEnv('EXTENSION_ID');
+  const publisherId = requireEnv('PUBLISHER_ID');
+  console.log('OAuth / item credential shape (values hidden)');
   console.log(
     `  CLIENT_ID:     len=${id.length} suffix=${id.slice(-28)} googleusercontent=${id.endsWith('.apps.googleusercontent.com')}`,
   );
@@ -57,6 +59,12 @@ function logCredentialShape() {
   );
   console.log(
     `  REFRESH_TOKEN: len=${refresh.length} prefix=${refresh.slice(0, 4)}`,
+  );
+  console.log(
+    `  EXTENSION_ID:  len=${extensionId.length} looks32lower=${/^[a-p]{32}$/.test(extensionId)} prefix=${extensionId.slice(0, 4)}…`,
+  );
+  console.log(
+    `  PUBLISHER_ID:  len=${publisherId.length} looksUuid=${/^[0-9a-f-]{36}$/i.test(publisherId)} prefix=${publisherId.slice(0, 8)}…`,
   );
 }
 
