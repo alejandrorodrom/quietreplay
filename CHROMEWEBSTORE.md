@@ -284,7 +284,7 @@ Default Run workflow: both store uploads on, dry run off (draft upload to Chrome
 
 **Chrome in review:** submitted revision `PENDING_REVIEW` → job fails unless `force_upload` (with a warning in the Actions summary).
 
-**Edge in review:** Microsoft has no “is it in review?” read API. If `publish_stores` hits `InProgressSubmission`, the job warns/fails unless `force_upload` (draft is kept). Partner Center remains the source of truth.
+**Edge in review:** Microsoft has no read-only status API. The Edge job **probes** with the publish API: `InProgressSubmission` = **In review** (Partner Center may also show **UPDATE In draft** at the same time). Without `force_upload`, the job fails before/instead of treating that as success; with `force_upload`, it may upload a new draft only and will not re-submit while review is open.
 
 Local Chrome status (env vars `CLIENT_ID`, `CLIENT_SECRET`, `REFRESH_TOKEN`, `EXTENSION_ID`, `PUBLISHER_ID`):
 

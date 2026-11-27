@@ -5,15 +5,26 @@
  * Upload (and optionally submit) a QuietReplay ZIP to Microsoft Edge Add-ons.
  *
  * Env:
- *   EDGE_API_KEY, EDGE_CLIENT_ID, EDGE_PRODUCT_ID, ZIP_PATH
- *   PUBLISH=1 — submit draft for certification after upload
- *   FORCE=1 — if publish fails with InProgressSubmission, warn and exit 0
- *            (Edge has no read-only "is in review?" API; this is the signal)
+ *   EDGE_API_KEY, EDGE_CLIENT_ID, EDGE_PRODUCT_ID
+ *   ZIP_PATH — required unless MODE=status
+ *   MODE=status|upload (default upload)
+ *   PUBLISH=1 — after upload, submit draft for certification
+ *   FORCE=1 — allow draft upload while Partner Center shows In review
+ *
+ * Edge has no read-only “is it in review?” API. We probe with POST /submissions
+ * and treat errorCode InProgressSubmission as In review (same role as Chrome
+ * PENDING_REVIEW).
  */
 
 import { readFileSync, appendFileSync } from 'node:fs';
 
 const API = 'https://api.addons.microsoftedge.microsoft.com';
+
+type PublishProbe =
+  | { kind: 'in_review'; message?: string }
+  | { kind: 'no_updates' }
+  | { kind: 'submitted' }
+  | { kind: 'failed'; errorCode?: string; message: string };
 
 function requireEnv(name: string): string {
   const value = process.env[name]?.trim();
@@ -42,6 +53,15 @@ function operationIdFromLocation(location: string | null): string {
   return id;
 }
 
+function isInReviewCode(errorCode?: string, message?: string): boolean {
+  const blob = `${errorCode ?? ''} ${message ?? ''}`;
+  return (
+    errorCode === 'InProgressSubmission' ||
+    blob.includes('InProgressSubmission') ||
+    /submission is in progress/i.test(blob)
+  );
+}
+
 async function waitForOperation(
   kind: 'package' | 'publish',
   operationId: string,
@@ -60,7 +80,7 @@ async function waitForOperation(
       message?: string;
     };
     const status = json.status ?? 'Unknown';
-    console.log(`Edge ${kind} operation ${operationId}: ${status}`);
+    console.log(`Edge ${kind} operation ${operationId}: ${status}${json.errorCode ? ` (${json.errorCode})` : ''}`);
     if (status !== 'InProgress') {
       return {
         status,
@@ -71,6 +91,65 @@ async function waitForOperation(
     await new Promise((r) => setTimeout(r, 5_000));
   }
   throw new Error(`Timed out waiting for Edge ${kind} operation ${operationId}`);
+}
+
+/**
+ * Probe Partner Center review state via publish.
+ * InProgressSubmission ⇒ In review (and draft may also exist — Partner Center UI).
+ */
+async function probeReviewState(): Promise<PublishProbe> {
+  const productId = requireEnv('EDGE_PRODUCT_ID');
+  const notes =
+    process.env.CERTIFICATION_NOTES?.trim() ||
+    'QuietReplay CI status probe / submit.';
+  const res = await fetch(`${API}/v1/products/${productId}/submissions`, {
+    method: 'POST',
+    headers: {
+      ...headers(),
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ notes }),
+  });
+
+  if (res.status !== 202) {
+    const text = await res.text();
+    let errorCode = '';
+    let message = text;
+    try {
+      const parsed = JSON.parse(text) as {
+        errorCode?: string;
+        message?: string;
+      };
+      errorCode = parsed.errorCode ?? '';
+      message = parsed.message ?? text;
+    } catch {
+      /* raw text */
+    }
+    if (isInReviewCode(errorCode, message)) {
+      return { kind: 'in_review', message };
+    }
+    if (errorCode === 'NoModulesUpdated' || /no updates/i.test(message)) {
+      return { kind: 'no_updates' };
+    }
+    return { kind: 'failed', errorCode, message: text };
+  }
+
+  const opId = operationIdFromLocation(res.headers.get('Location'));
+  const result = await waitForOperation('publish', opId);
+  if (isInReviewCode(result.errorCode, result.message)) {
+    return { kind: 'in_review', message: result.message };
+  }
+  if (result.errorCode === 'NoModulesUpdated' || /no updates/i.test(result.message ?? '')) {
+    return { kind: 'no_updates' };
+  }
+  if (result.status === 'Succeeded') {
+    return { kind: 'submitted' };
+  }
+  return {
+    kind: 'failed',
+    errorCode: result.errorCode,
+    message: `${result.status}: ${result.message ?? ''}`.trim(),
+  };
 }
 
 async function uploadPackage(): Promise<void> {
@@ -99,94 +178,117 @@ async function uploadPackage(): Promise<void> {
       `Edge package upload ${result.status}: ${result.errorCode ?? ''} ${result.message ?? ''}`.trim(),
     );
   }
-  console.log('::notice title=Edge Add-ons::Package uploaded to draft');
+  console.log('::notice title=Edge Add-ons::Package uploaded to draft (UPDATE)');
   setOutput('upload_status', 'Succeeded');
 }
 
-async function publishSubmission(): Promise<'submitted' | 'in_review' | 'skipped'> {
-  const productId = requireEnv('EDGE_PRODUCT_ID');
-  const notes =
-    process.env.CERTIFICATION_NOTES?.trim() ||
-    'QuietReplay update. Test on https page: Record → interact → Stop and save.';
-  const res = await fetch(`${API}/v1/products/${productId}/submissions`, {
-    method: 'POST',
-    headers: {
-      ...headers(),
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ notes }),
-  });
-
-  if (res.status !== 202) {
-    const text = await res.text();
-    let errorCode = '';
-    try {
-      errorCode = (JSON.parse(text) as { errorCode?: string }).errorCode ?? '';
-    } catch {
-      /* ignore */
-    }
-    if (errorCode === 'InProgressSubmission' || text.includes('InProgressSubmission')) {
-      return 'in_review';
-    }
-    throw new Error(`Edge publish failed (${res.status}): ${text}`);
-  }
-
-  const opId = operationIdFromLocation(res.headers.get('Location'));
-  const result = await waitForOperation('publish', opId);
-  if (result.errorCode === 'InProgressSubmission') {
-    return 'in_review';
-  }
-  if (result.status === 'Failed' && result.errorCode === 'InProgressSubmission') {
-    return 'in_review';
-  }
-  if (result.status !== 'Succeeded') {
-    throw new Error(
-      `Edge publish ${result.status}: ${result.errorCode ?? ''} ${result.message ?? ''}`.trim(),
-    );
-  }
-  console.log(
-    '::notice title=Edge Add-ons::Submitted for certification (check Partner Center for In review)',
-  );
-  setOutput('publish_status', 'Succeeded');
-  return 'submitted';
+function failInReview(message?: string): never {
+  const msg =
+    message?.trim() ||
+    'Edge already has a submission In review (InProgressSubmission). Partner Center may also show an UPDATE In draft. Wait for Microsoft, cancel the submission, or re-run with force_upload=true to upload a new draft only.';
+  console.log(`::warning title=Edge Add-ons in review::${msg}`);
+  setOutput('review_state', 'in_progress');
+  console.error(`::error::${msg}`);
+  process.exit(1);
 }
 
 async function main() {
+  const mode = (process.env.MODE ?? 'upload').trim();
   const doPublish = process.env.PUBLISH === '1';
   const force = process.env.FORCE === '1';
 
   console.log('Edge Add-ons');
   console.log(
-    '  Note: Microsoft has no read-only API for “is this in review?”. Partner Center is source of truth.',
+    '  Note: no read-only review API — probing with publish (InProgressSubmission = In review).',
   );
   console.log(`  product: ${requireEnv('EDGE_PRODUCT_ID')}`);
-  console.log(`  publish: ${doPublish ? 'yes' : 'draft upload only'}`);
+  console.log(`  mode:    ${mode}`);
+  console.log(`  publish: ${doPublish ? 'yes' : 'no'}`);
   console.log(`  force:   ${force ? 'yes' : 'no'}`);
 
-  await uploadPackage();
+  console.log('Probing Partner Center for In review…');
+  const probe = await probeReviewState();
+  console.log(`Probe result: ${probe.kind}`);
 
-  if (!doPublish) {
-    setOutput('review_state', 'draft_only');
-    return;
-  }
-
-  const outcome = await publishSubmission();
-  if (outcome === 'in_review') {
-    const msg =
-      'Edge already has a submission in progress (InProgressSubmission). Wait for Partner Center review, or re-run with force_upload=true to keep the new draft and skip failing the job.';
-    console.log(`::warning title=Edge Add-ons in review::${msg}`);
-    setOutput('review_state', 'in_progress');
+  if (probe.kind === 'in_review') {
     if (!force) {
-      console.error(`::error::${msg}`);
-      process.exit(1);
+      failInReview(probe.message);
     }
     console.log(
-      '::notice title=Edge Add-ons::force_upload=true — draft kept; certification not re-submitted while in review',
+      '::warning title=Edge Add-ons in review::In review detected; force_upload=true — will upload draft only and not re-submit.',
+    );
+    setOutput('review_state', 'in_progress');
+    if (mode === 'status') {
+      console.log('::notice title=Edge Add-ons::Status-only: In review (forced continue N/A for status mode beyond warning)');
+      return;
+    }
+    await uploadPackage();
+    console.log(
+      '::notice title=Edge Add-ons::Draft updated while previous submission stays In review. See Partner Center.',
     );
     return;
   }
 
-  setOutput('review_state', 'submitted');
+  if (probe.kind === 'submitted') {
+    console.log(
+      '::notice title=Edge Add-ons::Probe submitted an existing draft for certification (nothing was In review).',
+    );
+    setOutput('review_state', 'submitted');
+    if (mode === 'status') return;
+    // Continue so the new ZIP becomes the next UPDATE draft.
+  } else if (probe.kind === 'no_updates') {
+    setOutput('review_state', 'clear');
+  } else if (probe.kind === 'failed') {
+    // Unknown failure — do not block draft upload unless it looks like review.
+    console.log(
+      `::warning title=Edge Add-ons::Probe failed (${probe.errorCode ?? 'unknown'}): ${probe.message}`,
+    );
+    setOutput('review_state', 'probe_failed');
+  } else {
+    setOutput('review_state', 'clear');
+  }
+
+  if (mode === 'status') {
+    console.log('::notice title=Edge Add-ons::No In review submission detected by probe.');
+    return;
+  }
+
+  await uploadPackage();
+
+  if (!doPublish) {
+    setOutput('upload_only', 'true');
+    console.log(
+      '::notice title=Edge Add-ons::Draft upload done. Not submitted (publish_stores=false).',
+    );
+    return;
+  }
+
+  // Skip second publish if probe already submitted the previous draft and we
+  // only needed to refresh the package — submit the new draft now.
+  const outcome = await probeReviewState();
+  if (outcome.kind === 'in_review') {
+    if (!force) failInReview(outcome.message);
+    console.log(
+      '::notice title=Edge Add-ons::New draft kept; still In review — not re-submitted.',
+    );
+    return;
+  }
+  if (outcome.kind === 'submitted') {
+    setOutput('publish_status', 'Succeeded');
+    setOutput('review_state', 'submitted');
+    console.log(
+      '::notice title=Edge Add-ons::Submitted for certification (Partner Center → In review).',
+    );
+    return;
+  }
+  if (outcome.kind === 'no_updates') {
+    throw new Error(
+      'Edge publish reported NoModulesUpdated after upload — package may not have changed vs draft.',
+    );
+  }
+  throw new Error(
+    `Edge publish after upload failed: ${outcome.kind} ${'errorCode' in outcome ? outcome.errorCode : ''} ${'message' in outcome ? outcome.message : ''}`.trim(),
+  );
 }
 
 main().catch((err) => {

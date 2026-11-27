@@ -319,18 +319,40 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Edge status note
-        if: ${{ inputs.check_status && !inputs.upload_edge }}
+      - name: Require Edge Add-ons secrets
+        if: ${{ inputs.upload_edge || inputs.check_status }}
+        env:
+          EDGE_CLIENT_ID: ${{ secrets.EDGE_CLIENT_ID }}
+          EDGE_API_KEY: ${{ secrets.EDGE_API_KEY }}
+          EDGE_PRODUCT_ID: ${{ secrets.EDGE_PRODUCT_ID }}
         run: |
+          set -euo pipefail
+          missing=0
+          for name in EDGE_CLIENT_ID EDGE_API_KEY EDGE_PRODUCT_ID; do
+            if [ -z "${!name}" ]; then
+              echo "::error::Missing secret $name in the production environment."
+              missing=1
+            fi
+          done
+          exit "$missing"
+
+      - name: Edge status (In review probe)
+        if: ${{ inputs.check_status && !inputs.upload_edge }}
+        env:
+          EDGE_API_KEY: ${{ secrets.EDGE_API_KEY }}
+          EDGE_CLIENT_ID: ${{ secrets.EDGE_CLIENT_ID }}
+          EDGE_PRODUCT_ID: ${{ secrets.EDGE_PRODUCT_ID }}
+          MODE: status
+          FORCE: ${{ inputs.force_upload && '1' || '0' }}
+        run: |
+          set -euo pipefail
+          pnpm exec tsx scripts/edge-addons-publish.ts
           {
             echo "## Edge Add-ons"
             echo ""
-            echo "Microsoft **does not** expose a read-only review-status API."
-            echo "Check [Partner Center](https://partner.microsoft.com/dashboard) → Edge → QuietReplay."
-            echo ""
-            echo "To detect \`InProgressSubmission\`, run with \`upload_edge\` + \`publish_stores\`."
+            echo "- Probed Partner Center via publish API (\`InProgressSubmission\` = **In review**)."
+            echo "- UI may also show **UPDATE In draft** beside **In review** — that is expected."
           } >> "$GITHUB_STEP_SUMMARY"
-          echo "::notice title=Edge Add-ons::No read-only review API — open Partner Center for In review / In the Store."
 
       - name: Download zip artifact
         if: ${{ inputs.upload_edge }}
@@ -351,23 +373,6 @@ jobs:
           fi
           echo "path=${ZIP}" >> "$GITHUB_OUTPUT"
 
-      - name: Require Edge Add-ons secrets
-        if: ${{ inputs.upload_edge }}
-        env:
-          EDGE_CLIENT_ID: ${{ secrets.EDGE_CLIENT_ID }}
-          EDGE_API_KEY: ${{ secrets.EDGE_API_KEY }}
-          EDGE_PRODUCT_ID: ${{ secrets.EDGE_PRODUCT_ID }}
-        run: |
-          set -euo pipefail
-          missing=0
-          for name in EDGE_CLIENT_ID EDGE_API_KEY EDGE_PRODUCT_ID; do
-            if [ -z "${!name}" ]; then
-              echo "::error::Missing secret $name in the production environment."
-              missing=1
-            fi
-          done
-          exit "$missing"
-
       - name: Upload / submit Edge Add-ons
         if: ${{ inputs.upload_edge }}
         env:
@@ -375,6 +380,7 @@ jobs:
           EDGE_CLIENT_ID: ${{ secrets.EDGE_CLIENT_ID }}
           EDGE_PRODUCT_ID: ${{ secrets.EDGE_PRODUCT_ID }}
           ZIP_PATH: ${{ steps.zip.outputs.path }}
+          MODE: upload
           PUBLISH: ${{ inputs.publish_stores && '1' || '0' }}
           FORCE: ${{ inputs.force_upload && '1' || '0' }}
           CERTIFICATION_NOTES: >-
@@ -387,6 +393,6 @@ jobs:
           {
             echo "## Edge Add-ons"
             echo ""
-            echo "- upload/submit finished (see job log for \`InProgressSubmission\` warnings)"
-            echo "- Partner Center remains the source of truth for **In review**"
+            echo "- Validated **In review** via \`InProgressSubmission\` before upload (same idea as Chrome \`PENDING_REVIEW\`)."
+            echo "- Partner Center can show **UPDATE In draft** + **In review** at once; pipeline treats that as blocked unless \`force_upload\`."
           } >> "$GITHUB_STEP_SUMMARY"
