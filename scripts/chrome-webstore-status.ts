@@ -151,7 +151,7 @@ async function main() {
 
   if (process.env.FAIL_IF_PENDING === '1' && submitted === 'PENDING_REVIEW') {
     console.error(
-      '::error::Chrome Web Store item is PENDING_REVIEW. Wait for the review to finish, or re-run with force_chrome_upload=true.',
+      '::error::Chrome Web Store item is PENDING_REVIEW. Wait for the review to finish, or re-run with force_upload=true.',
     );
     process.exit(1);
   }

@@ -262,26 +262,35 @@ Workflow: `.github/workflows/publish.yml` (manual `workflow_dispatch`, environme
 
 **Prerequisite:** the first version of each store listing must exist (Chrome: item created; Edge: published at least once). The APIs cannot create a new product.
 
+### Workflow shape
+
+After CI/e2e/audit, **Build & release** runs once, then two store jobs can run **in parallel**:
+
+- **Chrome Web Store** — status API + optional upload/publish  
+- **Edge Add-ons** — draft upload + optional certification submit  
+
 ### Workflow inputs
 
 | Input | Default | Effect |
 |-------|---------|--------|
 | `dry_run` | false | Build + checks only; no tag, release, or store upload |
-| `upload_chrome` | false | Upload ZIP to Chrome Web Store as a **draft** |
-| `upload_edge` | false | Upload ZIP to Edge Add-ons (**draft** unless `publish_stores`) |
-| `publish_stores` | false | After upload: Chrome `publish` + Edge submit for certification |
-| `check_chrome_status` | false | Print Chrome review/publish state (`PENDING_REVIEW`, `STAGED`, `PUBLISHED`, …); also runs with `upload_chrome` |
-| `force_chrome_upload` | false | Allow upload even when submitted revision is `PENDING_REVIEW` |
+| `upload_chrome` | false | Run the Chrome job: status + upload ZIP as **draft** |
+| `upload_edge` | false | Run the Edge job: upload ZIP as **draft** (submit if `publish_stores`) |
+| `publish_stores` | false | After upload: Chrome `publish` + Edge certification submit |
+| `check_status` | false | Status-only path (Chrome: real API states; Edge: Partner Center note — no read-only review API) |
+| `force_upload` | false | If in review: Chrome still uploads; Edge warns on `InProgressSubmission` and does **not** fail the job |
 
-While a revision is **`PENDING_REVIEW`**, `upload_chrome` fails unless `force_chrome_upload` is true (the API usually rejects concurrent submissions anyway).
+**Chrome in review:** submitted revision `PENDING_REVIEW` → job fails unless `force_upload` (with a warning in the Actions summary).
 
-Local status check (same secrets as env vars `CLIENT_ID`, `CLIENT_SECRET`, `REFRESH_TOKEN`, `EXTENSION_ID`, `PUBLISHER_ID`):
+**Edge in review:** Microsoft has no “is it in review?” read API. If `publish_stores` hits `InProgressSubmission`, the job warns/fails unless `force_upload` (draft is kept). Partner Center remains the source of truth.
+
+Local Chrome status (env vars `CLIENT_ID`, `CLIENT_SECRET`, `REFRESH_TOKEN`, `EXTENSION_ID`, `PUBLISHER_ID`):
 
 ```bash
 pnpm run store:chrome-status
 ```
 
-Recommended first automated run: `upload_chrome` and/or `upload_edge` = true, `publish_stores` = false. Confirm the draft in each dashboard, then re-run with `publish_stores` = true (or publish from the UI).
+Recommended first automated run: `upload_chrome` and/or `upload_edge` = true, `publish_stores` = false. Confirm drafts, then re-run with `publish_stores` = true.
 
 ### Secrets (GitHub → Settings → Environments → **production**)
 
