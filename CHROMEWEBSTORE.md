@@ -274,11 +274,13 @@ After CI/e2e/audit, **Build & release** runs once, then two store jobs can run *
 | Input | Default | Effect |
 |-------|---------|--------|
 | `dry_run` | false | Build + checks only; no tag, release, or store upload |
-| `upload_chrome` | false | Run the Chrome job: status + upload ZIP as **draft** |
-| `upload_edge` | false | Run the Edge job: upload ZIP as **draft** (submit if `publish_stores`) |
+| `upload_chrome` | **true** | Run the Chrome job: status + upload ZIP as **draft** |
+| `upload_edge` | **true** | Run the Edge job: upload ZIP as **draft** (submit if `publish_stores`) |
 | `publish_stores` | false | After upload: Chrome `publish` + Edge certification submit |
 | `check_status` | false | Status-only path (Chrome: real API states; Edge: Partner Center note — no read-only review API) |
 | `force_upload` | false | If in review: Chrome still uploads; Edge warns on `InProgressSubmission` and does **not** fail the job |
+
+Default Run workflow: both store uploads on, dry run off (draft upload to Chrome + Edge).
 
 **Chrome in review:** submitted revision `PENDING_REVIEW` → job fails unless `force_upload` (with a warning in the Actions summary).
 

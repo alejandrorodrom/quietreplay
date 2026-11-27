@@ -12,12 +12,12 @@ on:
         description: "Chrome path: upload ZIP as draft (and print status)"
         required: false
         type: boolean
-        default: false
+        default: true
       upload_edge:
         description: "Edge path: upload ZIP as draft (and submit if publish_stores)"
         required: false
         type: boolean
-        default: false
+        default: true
       publish_stores:
         description: "After upload: Chrome publish + Edge certification submit"
         required: false
