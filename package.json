@@ -17,6 +17,7 @@
     "test:e2e:external": "playwright test tests/e2e/external.spec.ts",
     "check:no-network": "tsx scripts/check-no-network.ts",
     "check:license-headers": "tsx scripts/check-license-headers.ts",
+    "store:screenshots": "wxt build && tsx scripts/store-screenshots.ts",
     "postinstall": "wxt prepare"
   },
   "repository": {

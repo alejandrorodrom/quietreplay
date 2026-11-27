@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Checkout — Demo Shop</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #1a1b1e;
+        --muted: #5c5a55;
+        --paper: #f6f4ef;
+        --card: #fffdf8;
+        --line: #d9d4c8;
+        --accent: #0b57d0;
+        --ok: #0f766e;
+        font-family: "Segoe UI", system-ui, sans-serif;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+          radial-gradient(1200px 600px at 10% -10%, #dbeafe 0%, transparent 55%),
+          radial-gradient(900px 500px at 100% 0%, #ccfbf1 0%, transparent 45%),
+          var(--paper);
+        color: var(--ink);
+      }
+      header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem 2rem;
+        border-bottom: 1px solid var(--line);
+        background: color-mix(in srgb, var(--card) 88%, transparent);
+        backdrop-filter: blur(8px);
+      }
+      .brand {
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+      nav {
+        display: flex;
+        gap: 1.25rem;
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+      main {
+        max-width: 960px;
+        margin: 2.5rem auto;
+        padding: 0 1.5rem 3rem;
+        display: grid;
+        gap: 1.25rem;
+      }
+      h1 {
+        margin: 0 0 0.35rem;
+        font-size: 1.85rem;
+        letter-spacing: -0.03em;
+      }
+      .lede {
+        margin: 0;
+        color: var(--muted);
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        padding: 1.25rem 1.35rem;
+        box-shadow: 0 10px 30px rgb(26 27 30 / 6%);
+      }
+      .row {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 0.65rem 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .row:last-child {
+        border-bottom: 0;
+      }
+      .price {
+        font-variant-numeric: tabular-nums;
+      }
+      .actions {
+        display: flex;
+        gap: 0.75rem;
+        margin-top: 0.5rem;
+      }
+      button {
+        appearance: none;
+        border: 1px solid var(--line);
+        background: #fff;
+        color: var(--ink);
+        border-radius: 999px;
+        padding: 0.55rem 1.1rem;
+        font: inherit;
+        cursor: pointer;
+      }
+      button.primary {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #fff;
+      }
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        color: var(--ok);
+        font-size: 0.85rem;
+        font-weight: 600;
+      }
+      label {
+        display: grid;
+        gap: 0.35rem;
+        margin-top: 0.85rem;
+        font-size: 0.9rem;
+      }
+      input {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 0.6rem 0.75rem;
+        font: inherit;
+        background: #fff;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="brand">Demo Shop</div>
+      <nav>
+        <span>Catalog</span>
+        <span>Cart</span>
+        <span>Help</span>
+      </nav>
+    </header>
+    <main>
+      <div>
+        <p class="badge">Secure checkout</p>
+        <h1>Review your order</h1>
+        <p class="lede">
+          A normal https-style page QuietReplay can record for a bug report or
+          handoff.
+        </p>
+      </div>
+      <section class="card" aria-label="Order summary">
+        <div class="row">
+          <span>QuietReplay mug</span>
+          <span class="price">$18.00</span>
+        </div>
+        <div class="row">
+          <span>Shipping</span>
+          <span class="price">$4.00</span>
+        </div>
+        <div class="row">
+          <strong>Total</strong>
+          <strong class="price">$22.00</strong>
+        </div>
+        <label>
+          Promo code
+          <input id="promo" type="text" value="SAVE10" />
+        </label>
+        <div class="actions">
+          <button type="button" id="pay" class="primary">Pay now</button>
+          <button type="button" id="back">Back to cart</button>
+        </div>
+      </section>
+    </main>
+    <script>
+      document.getElementById('pay').onclick = () => {
+        console.info('Pay clicked');
+      };
+      document.getElementById('back').onclick = () => {
+        console.warn('Back to cart');
+      };
+    </script>
+  </body>
+</html>
