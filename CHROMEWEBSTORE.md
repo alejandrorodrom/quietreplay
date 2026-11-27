@@ -284,7 +284,9 @@ Default Run workflow: both store uploads on, dry run off (draft upload to Chrome
 
 **Chrome in review:** submitted revision `PENDING_REVIEW` → job fails unless `force_upload` (with a warning in the Actions summary).
 
-**Edge in review:** Microsoft has no read-only status API. The Edge job **probes** with the publish API: `InProgressSubmission` = **In review** (Partner Center may also show **UPDATE In draft** at the same time). Without `force_upload`, the job fails before/instead of treating that as success; with `force_upload`, it may upload a new draft only and will not re-submit while review is open.
+**Same version:** Chrome compares the ZIP `manifest.json` version to **published** and **submitted** `crxVersion`. Edge compares to the **live** store version (needs `EDGE_CRX_ID`). Match → fail unless `force_upload`. Bump `package.json` and `wxt.config.ts` together.
+
+**Edge in review:** Microsoft has no read-only status API. The Edge job **probes** with the publish API: `InProgressSubmission` = **In review** (Partner Center may also show **UPDATE In draft** at the same time). Without `force_upload`, the job fails; with `force_upload`, it may upload a new draft only and will not re-submit while review is open.
 
 Local Chrome status (env vars `CLIENT_ID`, `CLIENT_SECRET`, `REFRESH_TOKEN`, `EXTENSION_ID`, `PUBLISHER_ID`):
 
@@ -316,6 +318,7 @@ API enable: Chrome Web Store API in the same Google Cloud project. Scope: `https
 | `EDGE_CLIENT_ID` | Partner Center → Edge → your extension → **Publish API** |
 | `EDGE_API_KEY` | Same page (create/renew; keys expire ~every **72 days**) |
 | `EDGE_PRODUCT_ID` | Extension Overview → Product ID (**GUID**, not the 32-char store ID in the public URL) |
+| `EDGE_CRX_ID` | Optional but recommended: 32-letter id in the Edge Add-ons store URL (for live version checks) |
 
 Docs: https://learn.microsoft.com/en-us/microsoft-edge/extensions/update/api/using-addons-api
 

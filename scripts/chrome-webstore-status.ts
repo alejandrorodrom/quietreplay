@@ -4,14 +4,26 @@
  *
  * Print Chrome Web Store item status (published + submitted revisions).
  * Env: CLIENT_ID, CLIENT_SECRET, REFRESH_TOKEN, EXTENSION_ID, PUBLISHER_ID
+ * Optional: ZIP_PATH — compare package version to store revisions
  * Optional: FAIL_IF_PENDING=1 — exit 1 when submitted revision is PENDING_REVIEW
- * Optional: GITHUB_OUTPUT — write submitted_state / published_state for Actions
+ * Optional: FAIL_IF_SAME_VERSION=1 — exit 1 when ZIP version equals published or submitted
+ * Optional: GITHUB_OUTPUT — write submitted_state / published_state / versions for Actions
  */
 
 import { appendFileSync } from 'node:fs';
+import {
+  readZipManifestVersion,
+  versionsEqual,
+} from './package-version';
+
+type DistributionChannel = {
+  crxVersion?: string;
+  deployPercentage?: number;
+};
 
 type ItemRevisionStatus = {
   state?: string;
+  distributionChannels?: DistributionChannel[];
 };
 
 type FetchStatusResponse = {
@@ -73,6 +85,11 @@ function describe(state: string | undefined): string {
   return `${state} — ${STATE_HELP[state] ?? 'See Chrome Web Store docs'}`;
 }
 
+function crxVersionOf(rev?: ItemRevisionStatus): string | undefined {
+  const v = rev?.distributionChannels?.[0]?.crxVersion?.trim();
+  return v || undefined;
+}
+
 function setOutput(key: string, value: string) {
   const out = process.env.GITHUB_OUTPUT;
   if (!out) return;
@@ -126,11 +143,13 @@ async function main() {
   const status = await fetchStatus(token);
   const published = status.publishedItemRevisionStatus?.state;
   const submitted = status.submittedItemRevisionStatus?.state;
+  const publishedVersion = crxVersionOf(status.publishedItemRevisionStatus);
+  const submittedVersion = crxVersionOf(status.submittedItemRevisionStatus);
 
   console.log('Chrome Web Store status');
   console.log(`  itemId:     ${status.itemId ?? requireEnv('EXTENSION_ID')}`);
-  console.log(`  published:  ${describe(published)}`);
-  console.log(`  submitted:  ${describe(submitted)}`);
+  console.log(`  published:  ${describe(published)}${publishedVersion ? ` (v${publishedVersion})` : ''}`);
+  console.log(`  submitted:  ${describe(submitted)}${submittedVersion ? ` (v${submittedVersion})` : ''}`);
   if (status.lastAsyncUploadState) {
     console.log(`  lastUpload: ${status.lastAsyncUploadState}`);
   }
@@ -141,11 +160,13 @@ async function main() {
     console.log('  warned:     true (policy warning — check the dashboard)');
   }
 
-  const summary = `published=${published ?? 'none'}; submitted=${submitted ?? 'none'}`;
+  const summary = `published=${published ?? 'none'}${publishedVersion ? `@${publishedVersion}` : ''}; submitted=${submitted ?? 'none'}${submittedVersion ? `@${submittedVersion}` : ''}`;
   console.log(`::notice title=Chrome Web Store::${summary}`);
 
   setOutput('published_state', published ?? '');
   setOutput('submitted_state', submitted ?? '');
+  setOutput('published_version', publishedVersion ?? '');
+  setOutput('submitted_version', submittedVersion ?? '');
   setOutput('taken_down', status.takenDown ? 'true' : 'false');
   setOutput('warned', status.warned ? 'true' : 'false');
 
@@ -154,6 +175,31 @@ async function main() {
       '::error::Chrome Web Store item is PENDING_REVIEW. Wait for the review to finish, or re-run with force_upload=true.',
     );
     process.exit(1);
+  }
+
+  const zipPath = process.env.ZIP_PATH?.trim();
+  if (zipPath && process.env.FAIL_IF_SAME_VERSION === '1') {
+    const packageVersion = await readZipManifestVersion(zipPath);
+    setOutput('package_version', packageVersion);
+    console.log(`  package:    v${packageVersion}`);
+    const samePublished =
+      publishedVersion !== undefined &&
+      versionsEqual(packageVersion, publishedVersion);
+    const sameSubmitted =
+      submittedVersion !== undefined &&
+      versionsEqual(packageVersion, submittedVersion);
+    if (samePublished || sameSubmitted) {
+      const where = [
+        samePublished ? `published v${publishedVersion}` : null,
+        sameSubmitted ? `submitted v${submittedVersion}` : null,
+      ]
+        .filter(Boolean)
+        .join(' and ');
+      console.error(
+        `::error::Chrome package version v${packageVersion} matches ${where}. Bump version in package.json and wxt.config.ts, or re-run with force_upload=true.`,
+      );
+      process.exit(1);
+    }
   }
 }
 

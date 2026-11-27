@@ -17,8 +17,14 @@
  */
 
 import { readFileSync, appendFileSync } from 'node:fs';
+import {
+  readZipManifestVersion,
+  versionsEqual,
+} from './package-version';
 
 const API = 'https://api.addons.microsoftedge.microsoft.com';
+const STORE_DETAIL =
+  'https://microsoftedge.microsoft.com/addons/getproductdetailsbycrxid';
 
 type PublishProbe =
   | { kind: 'in_review'; message?: string }
@@ -192,6 +198,54 @@ function failInReview(message?: string): never {
   process.exit(1);
 }
 
+async function fetchLiveStoreVersion(crxId: string): Promise<string | undefined> {
+  const res = await fetch(`${STORE_DETAIL}/${encodeURIComponent(crxId)}?hl=en`, {
+    headers: {
+      Referer: `https://microsoftedge.microsoft.com/addons/detail/${crxId}`,
+    },
+  });
+  if (!res.ok) {
+    console.log(`Live store lookup failed (${res.status}) for crx id`);
+    return undefined;
+  }
+  const body = (await res.json()) as { version?: string };
+  return body.version?.trim() || undefined;
+}
+
+async function assertNewPackageVersion(): Promise<string | undefined> {
+  const zipPath = process.env.ZIP_PATH?.trim();
+  if (!zipPath) return undefined;
+  const packageVersion = await readZipManifestVersion(zipPath);
+  setOutput('package_version', packageVersion);
+  console.log(`  package: v${packageVersion}`);
+
+  const crxId = process.env.EDGE_CRX_ID?.trim();
+  if (!crxId) {
+    console.log(
+      '::warning title=Edge Add-ons::EDGE_CRX_ID secret not set — skipping live version compare. Add the 32-letter id from the Edge Add-ons store URL.',
+    );
+    return packageVersion;
+  }
+
+  const liveVersion = await fetchLiveStoreVersion(crxId);
+  if (liveVersion) {
+    console.log(`  live:    v${liveVersion}`);
+    setOutput('live_version', liveVersion);
+    if (
+      process.env.FAIL_IF_SAME_VERSION === '1' &&
+      versionsEqual(packageVersion, liveVersion)
+    ) {
+      console.error(
+        `::error::Edge package version v${packageVersion} matches the live store version. Bump version in package.json and wxt.config.ts, or re-run with force_upload=true.`,
+      );
+      process.exit(1);
+    }
+  } else {
+    console.log('  live:    (unknown — extension may not be public yet)');
+  }
+  return packageVersion;
+}
+
 async function main() {
   const mode = (process.env.MODE ?? 'upload').trim();
   const doPublish = process.env.PUBLISH === '1';
@@ -205,6 +259,10 @@ async function main() {
   console.log(`  mode:    ${mode}`);
   console.log(`  publish: ${doPublish ? 'yes' : 'no'}`);
   console.log(`  force:   ${force ? 'yes' : 'no'}`);
+
+  if (mode !== 'status') {
+    await assertNewPackageVersion();
+  }
 
   console.log('Probing Partner Center for In review…');
   const probe = await probeReviewState();
