@@ -36,11 +36,28 @@ const STATE_HELP: Record<string, string> = {
 };
 
 function requireEnv(name: string): string {
-  const value = process.env[name];
+  const value = process.env[name]?.trim();
   if (!value) {
     throw new Error(`Missing required env var ${name}`);
   }
   return value;
+}
+
+/** Safe shape check — never logs secret values. */
+function logCredentialShape() {
+  const id = requireEnv('CLIENT_ID');
+  const secret = requireEnv('CLIENT_SECRET');
+  const refresh = requireEnv('REFRESH_TOKEN');
+  console.log('OAuth credential shape (values hidden)');
+  console.log(
+    `  CLIENT_ID:     len=${id.length} suffix=${id.slice(-28)} googleusercontent=${id.endsWith('.apps.googleusercontent.com')}`,
+  );
+  console.log(
+    `  CLIENT_SECRET: len=${secret.length} prefix=${secret.slice(0, 7)}`,
+  );
+  console.log(
+    `  REFRESH_TOKEN: len=${refresh.length} prefix=${refresh.slice(0, 4)}`,
+  );
 }
 
 function describe(state: string | undefined): string {
@@ -96,6 +113,7 @@ async function fetchStatus(token: string): Promise<FetchStatusResponse> {
 }
 
 async function main() {
+  logCredentialShape();
   const token = await fetchAccessToken();
   const status = await fetchStatus(token);
   const published = status.publishedItemRevisionStatus?.state;
