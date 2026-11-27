@@ -235,17 +235,23 @@ jobs:
           REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
           EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
           PUBLISHER_ID: ${{ secrets.CHROME_PUBLISHER_ID }}
+          ZIP_PATH: ${{ steps.zip.outputs.path }}
           FAIL_IF_PENDING: ${{ inputs.upload_chrome && !inputs.force_upload && '1' || '0' }}
+          FAIL_IF_SAME_VERSION: ${{ inputs.upload_chrome && !inputs.force_upload && '1' || '0' }}
         run: |
           set -euo pipefail
           pnpm exec tsx scripts/chrome-webstore-status.ts
           PUBLISHED="$(awk -F= '/^published_state=/{print $2}' "$GITHUB_OUTPUT" | tail -n1)"
           SUBMITTED="$(awk -F= '/^submitted_state=/{print $2}' "$GITHUB_OUTPUT" | tail -n1)"
+          PUB_VER="$(awk -F= '/^published_version=/{print $2}' "$GITHUB_OUTPUT" | tail -n1)"
+          SUB_VER="$(awk -F= '/^submitted_version=/{print $2}' "$GITHUB_OUTPUT" | tail -n1)"
+          PKG_VER="$(awk -F= '/^package_version=/{print $2}' "$GITHUB_OUTPUT" | tail -n1)"
           {
             echo "## Chrome Web Store"
             echo ""
-            echo "- published: \`${PUBLISHED:-none}\`"
-            echo "- submitted: \`${SUBMITTED:-none}\`"
+            echo "- published: \`${PUBLISHED:-none}\`${PUB_VER:+ (v$PUB_VER)}"
+            echo "- submitted: \`${SUBMITTED:-none}\`${SUB_VER:+ (v$SUB_VER)}"
+            echo "- package: \`${PKG_VER:-n/a}\`"
           } >> "$GITHUB_STEP_SUMMARY"
           if [ "${SUBMITTED}" = "PENDING_REVIEW" ]; then
             echo "::warning title=Chrome in review::Submitted revision is PENDING_REVIEW. Wait, or re-run with force_upload=true."
@@ -379,10 +385,12 @@ jobs:
           EDGE_API_KEY: ${{ secrets.EDGE_API_KEY }}
           EDGE_CLIENT_ID: ${{ secrets.EDGE_CLIENT_ID }}
           EDGE_PRODUCT_ID: ${{ secrets.EDGE_PRODUCT_ID }}
+          EDGE_CRX_ID: ${{ secrets.EDGE_CRX_ID }}
           ZIP_PATH: ${{ steps.zip.outputs.path }}
           MODE: upload
           PUBLISH: ${{ inputs.publish_stores && '1' || '0' }}
           FORCE: ${{ inputs.force_upload && '1' || '0' }}
+          FAIL_IF_SAME_VERSION: ${{ inputs.upload_edge && !inputs.force_upload && '1' || '0' }}
           CERTIFICATION_NOTES: >-
             QuietReplay update. Test: open an https page → Record → interact →
             Stop and save → check Downloads for quietreplay-*.zip. No account;
@@ -393,6 +401,7 @@ jobs:
           {
             echo "## Edge Add-ons"
             echo ""
-            echo "- Validated **In review** via \`InProgressSubmission\` before upload (same idea as Chrome \`PENDING_REVIEW\`)."
-            echo "- Partner Center can show **UPDATE In draft** + **In review** at once; pipeline treats that as blocked unless \`force_upload\`."
+            echo "- Validated **In review** via \`InProgressSubmission\` (same idea as Chrome \`PENDING_REVIEW\`)."
+            echo "- Rejects ZIP when version matches the **live** store version (needs \`EDGE_CRX_ID\` secret)."
+            echo "- Partner Center can show **UPDATE In draft** + **In review** at once; blocked unless \`force_upload\`."
           } >> "$GITHUB_STEP_SUMMARY"
