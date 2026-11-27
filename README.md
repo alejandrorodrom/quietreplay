@@ -18,6 +18,7 @@
   <a href="https://github.com/alejandrorodrom/quietreplay/releases"><img src="https://img.shields.io/github/v/release/alejandrorodrom/quietreplay?label=version" alt="Version"></a>
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT"></a>
   <a href="https://api.scorecard.dev/projects/github.com/alejandrorodrom/quietreplay"><img src="https://api.scorecard.dev/projects/github.com/alejandrorodrom/quietreplay/badge" alt="OpenSSF Scorecard"></a>
+  <a href="https://www.bestpractices.dev/projects/17177"><img src="https://www.bestpractices.dev/projects/17177/badge" alt="OpenSSF Best Practices"></a>
   <img src="https://img.shields.io/badge/node-%3E%3D22.12-brightgreen" alt="Node.js >=22.12">
 </p>
 
